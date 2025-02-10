@@ -1,0 +1,439 @@
+---
+title: "VennDiagram_coalescence"
+output: html_document
+date: "2025-02-10"
+---
+
+#0.Load library
+```{r}
+library(phyloseq)
+#BiocManager::install("MicrobiotaProcess")
+library(MicrobiotaProcess)
+library(ggVennDiagram)
+library(ggplot2)
+```
+
+#1. Load phyloseq object
+
+```{r}
+load("./phyloseq.Rdata")
+dat <- ps_rare2
+sample_data(dat)$Time <- factor(sample_data(dat)$Time, levels = c("T1", "T5", "T15", "T30"))
+
+load("./phyloseq_subset/dat_ab_d1_t1.Rdata")
+load("./phyloseq_subset/dat_ac_d1_t1.Rdata")
+load("./phyloseq_subset/dat_bc_d1_t1.Rdata")
+load("./phyloseq_subset/dat_ab_d1_t5.Rdata")
+load("./phyloseq_subset/dat_ac_d1_t5.Rdata")
+load("./phyloseq_subset/dat_bc_d1_t5.Rdata")
+load("./phyloseq_subset/dat_ab_d1_t15.Rdata")
+load("./phyloseq_subset/dat_ac_d1_t15.Rdata")
+load("./phyloseq_subset/dat_bc_d1_t15.Rdata")
+load("./phyloseq_subset/dat_ab_d1_t30.Rdata")
+load("./phyloseq_subset/dat_ac_d1_t30.Rdata")
+load("./phyloseq_subset/dat_bc_d1_t30.Rdata")
+
+load("./phyloseq_subset/dat_ab_d3_t1.Rdata")
+load("./phyloseq_subset/dat_ac_d3_t1.Rdata")
+load("./phyloseq_subset/dat_bc_d3_t1.Rdata")
+load("./phyloseq_subset/dat_ab_d3_t5.Rdata")
+load("./phyloseq_subset/dat_ac_d3_t5.Rdata")
+load("./phyloseq_subset/dat_bc_d3_t5.Rdata")
+load("./phyloseq_subset/dat_ab_d3_t15.Rdata")
+load("./phyloseq_subset/dat_ac_d3_t15.Rdata")
+load("./phyloseq_subset/dat_bc_d3_t15.Rdata")
+load("./phyloseq_subset/dat_ab_d3_t30.Rdata")
+load("./phyloseq_subset/dat_ac_d3_t30.Rdata")
+load("./phyloseq_subset/dat_bc_d3_t30.Rdata")
+
+load("./phyloseq_subset/dat_ab_d5_t1.Rdata")
+load("./phyloseq_subset/dat_ac_d5_t1.Rdata")
+load("./phyloseq_subset/dat_bc_d5_t1.Rdata")
+load("./phyloseq_subset/dat_ab_d5_t5.Rdata")
+load("./phyloseq_subset/dat_ac_d5_t5.Rdata")
+load("./phyloseq_subset/dat_bc_d5_t5.Rdata")
+load("./phyloseq_subset/dat_ab_d5_t15.Rdata")
+load("./phyloseq_subset/dat_ac_d5_t15.Rdata")
+load("./phyloseq_subset/dat_bc_d5_t15.Rdata")
+load("./phyloseq_subset/dat_ab_d5_t30.Rdata")
+load("./phyloseq_subset/dat_ac_d5_t30.Rdata")
+load("./phyloseq_subset/dat_bc_d5_t30.Rdata")
+
+```
+
+#2. Venn Diagram / per time and dilution
+Create a venn list ang venn plot
+```{r}
+#d1
+vennlist_ab.d1.t1 <- get_vennlist(obj=dat_ab.d1.t1, factorNames="Soil")
+vennlist_ab.d1.t5 <- get_vennlist(obj=dat_ab.d1.t5, factorNames="Soil")
+vennlist_ab.d1.t15 <- get_vennlist(obj=dat_ab.d1.t15, factorNames="Soil")
+vennlist_ab.d1.t30 <- get_vennlist(obj=dat_ab.d1.t30, factorNames="Soil")
+
+vennlist_ac.d1.t1 <- get_vennlist(obj=dat_ac.d1.t1, factorNames="Soil")
+vennlist_ac.d1.t5 <- get_vennlist(obj=dat_ac.d1.t5, factorNames="Soil")
+vennlist_ac.d1.t15 <- get_vennlist(obj=dat_ac.d1.t15, factorNames="Soil")
+vennlist_ac.d1.t30 <- get_vennlist(obj=dat_ac.d1.t30, factorNames="Soil")
+
+vennlist_bc.d1.t1 <- get_vennlist(obj=dat_bc.d1.t1, factorNames="Soil")
+vennlist_bc.d1.t5 <- get_vennlist(obj=dat_bc.d1.t5, factorNames="Soil")
+vennlist_bc.d1.t15 <- get_vennlist(obj=dat_bc.d1.t15, factorNames="Soil")
+vennlist_bc.d1.t30 <- get_vennlist(obj=dat_bc.d1.t30, factorNames="Soil")
+#d3
+vennlist_ab.d3.t1 <- get_vennlist(obj=dat_ab.d3.t1, factorNames="Soil")
+vennlist_ab.d3.t5 <- get_vennlist(obj=dat_ab.d3.t5, factorNames="Soil")
+vennlist_ab.d3.t15 <- get_vennlist(obj=dat_ab.d3.t15, factorNames="Soil")
+vennlist_ab.d3.t30 <- get_vennlist(obj=dat_ab.d3.t30, factorNames="Soil")
+
+vennlist_ac.d3.t1 <- get_vennlist(obj=dat_ac.d3.t1, factorNames="Soil")
+vennlist_ac.d3.t5 <- get_vennlist(obj=dat_ac.d3.t5, factorNames="Soil")
+vennlist_ac.d3.t15 <- get_vennlist(obj=dat_ac.d3.t15, factorNames="Soil")
+vennlist_ac.d3.t30 <- get_vennlist(obj=dat_ac.d3.t30, factorNames="Soil")
+
+vennlist_bc.d3.t1 <- get_vennlist(obj=dat_bc.d3.t1, factorNames="Soil")
+vennlist_bc.d3.t5 <- get_vennlist(obj=dat_bc.d3.t5, factorNames="Soil")
+vennlist_bc.d3.t15 <- get_vennlist(obj=dat_bc.d3.t15, factorNames="Soil")
+vennlist_bc.d3.t30 <- get_vennlist(obj=dat_bc.d3.t30, factorNames="Soil")
+#d5
+vennlist_ab.d5.t1 <- get_vennlist(obj=dat_ab.d5.t1, factorNames="Soil")
+vennlist_ab.d5.t5 <- get_vennlist(obj=dat_ab.d5.t5, factorNames="Soil")
+vennlist_ab.d5.t15 <- get_vennlist(obj=dat_ab.d5.t15, factorNames="Soil")
+vennlist_ab.d5.t30 <- get_vennlist(obj=dat_ab.d5.t30, factorNames="Soil")
+
+vennlist_ac.d5.t1 <- get_vennlist(obj=dat_ac.d5.t1, factorNames="Soil")
+vennlist_ac.d5.t5 <- get_vennlist(obj=dat_ac.d5.t5, factorNames="Soil")
+vennlist_ac.d5.t15 <- get_vennlist(obj=dat_ac.d5.t15, factorNames="Soil")
+vennlist_ac.d5.t30 <- get_vennlist(obj=dat_ac.d5.t30, factorNames="Soil")
+
+vennlist_bc.d5.t1 <- get_vennlist(obj=dat_bc.d5.t1, factorNames="Soil")
+vennlist_bc.d5.t5 <- get_vennlist(obj=dat_bc.d5.t5, factorNames="Soil")
+vennlist_bc.d5.t15 <- get_vennlist(obj=dat_bc.d5.t15, factorNames="Soil")
+vennlist_bc.d5.t30 <- get_vennlist(obj=dat_bc.d5.t30, factorNames="Soil")
+
+
+```
+
+```{r}
+#upset_ab.d1.t1 <- get_upset(obj=dat_ab.d1.t1, factorNames="Soil")
+
+#ab
+venn_ab.d1.t1 <- Venn(vennlist_ab.d1.t1)
+venn_ab.d1.t5 <- Venn(vennlist_ab.d1.t5)
+venn_ab.d1.t15 <- Venn(vennlist_ab.d1.t15)
+venn_ab.d1.t30 <- Venn(vennlist_ab.d1.t30)
+venn_ab.d3.t1 <- Venn(vennlist_ab.d3.t1)
+venn_ab.d3.t5 <- Venn(vennlist_ab.d3.t5)
+venn_ab.d3.t15 <- Venn(vennlist_ab.d3.t15)
+venn_ab.d3.t30 <- Venn(vennlist_ab.d3.t30)
+venn_ab.d5.t1 <- Venn(vennlist_ab.d5.t1)
+venn_ab.d5.t5 <- Venn(vennlist_ab.d5.t5)
+venn_ab.d5.t15 <- Venn(vennlist_ab.d5.t15)
+venn_ab.d5.t30 <- Venn(vennlist_ab.d5.t30)
+
+venn_ac.d1.t1 <- Venn(vennlist_ac.d1.t1)
+venn_ac.d1.t5 <- Venn(vennlist_ac.d1.t5)
+venn_ac.d1.t15 <- Venn(vennlist_ac.d1.t15)
+venn_ac.d1.t30 <- Venn(vennlist_ac.d1.t30)
+venn_ac.d3.t1 <- Venn(vennlist_ac.d3.t1)
+venn_ac.d3.t5 <- Venn(vennlist_ac.d3.t5)
+venn_ac.d3.t15 <- Venn(vennlist_ac.d3.t15)
+venn_ac.d3.t30 <- Venn(vennlist_ac.d3.t30)
+venn_ac.d5.t1 <- Venn(vennlist_ac.d5.t1)
+venn_ac.d5.t5 <- Venn(vennlist_ac.d5.t5)
+venn_ac.d5.t15 <- Venn(vennlist_ac.d5.t15)
+venn_ac.d5.t30 <- Venn(vennlist_ac.d5.t30)
+
+venn_bc.d1.t1 <- Venn(vennlist_bc.d1.t1)
+venn_bc.d1.t5 <- Venn(vennlist_bc.d1.t5)
+venn_bc.d1.t15 <- Venn(vennlist_bc.d1.t15)
+venn_bc.d1.t30 <- Venn(vennlist_bc.d1.t30)
+venn_bc.d3.t1 <- Venn(vennlist_bc.d3.t1)
+venn_bc.d3.t5 <- Venn(vennlist_bc.d3.t5)
+venn_bc.d3.t15 <- Venn(vennlist_bc.d3.t15)
+venn_bc.d3.t30 <- Venn(vennlist_bc.d3.t30)
+venn_bc.d5.t1 <- Venn(vennlist_bc.d5.t1)
+venn_bc.d5.t5 <- Venn(vennlist_bc.d5.t5)
+venn_bc.d5.t15 <- Venn(vennlist_bc.d5.t15)
+venn_bc.d5.t30 <- Venn(vennlist_bc.d5.t30)
+
+
+#ab
+data_ab.d1.t1 <- process_data(venn_ab.d1.t1)
+data_ab.d1.t5 <- process_data(venn_ab.d1.t5)
+data_ab.d1.t15 <- process_data(venn_ab.d1.t15)
+data_ab.d1.t30 <- process_data(venn_ab.d1.t30)
+
+data_ab.d3.t1 <- process_data(venn_ab.d3.t1)
+data_ab.d3.t5 <- process_data(venn_ab.d3.t5)
+data_ab.d3.t15 <- process_data(venn_ab.d3.t15)
+data_ab.d3.t30 <- process_data(venn_ab.d3.t30)
+
+data_ab.d5.t1 <- process_data(venn_ab.d5.t1)
+data_ab.d5.t5 <- process_data(venn_ab.d5.t5)
+data_ab.d5.t15 <- process_data(venn_ab.d5.t15)
+data_ab.d5.t30 <- process_data(venn_ab.d5.t30)
+#ac
+data_ac.d1.t1 <- process_data(venn_ac.d1.t1)
+data_ac.d1.t5 <- process_data(venn_ac.d1.t5)
+data_ac.d1.t15 <- process_data(venn_ac.d1.t15)
+data_ac.d1.t30 <- process_data(venn_ac.d1.t30)
+
+data_ac.d3.t1 <- process_data(venn_ac.d3.t1)
+data_ac.d3.t5 <- process_data(venn_ac.d3.t5)
+data_ac.d3.t15 <- process_data(venn_ac.d3.t15)
+data_ac.d3.t30 <- process_data(venn_ac.d3.t30)
+
+data_ac.d5.t1 <- process_data(venn_ac.d5.t1)
+data_ac.d5.t5 <- process_data(venn_ac.d5.t5)
+data_ac.d5.t15 <- process_data(venn_ac.d5.t15)
+data_ac.d5.t30 <- process_data(venn_ac.d5.t30)
+#bc
+data_bc.d1.t1 <- process_data(venn_bc.d1.t1)
+data_bc.d1.t5 <- process_data(venn_bc.d1.t5)
+data_bc.d1.t15 <- process_data(venn_bc.d1.t15)
+data_bc.d1.t30 <- process_data(venn_bc.d1.t30)
+
+data_bc.d3.t1 <- process_data(venn_bc.d3.t1)
+data_bc.d3.t5 <- process_data(venn_bc.d3.t5)
+data_bc.d3.t15 <- process_data(venn_bc.d3.t15)
+data_bc.d3.t30 <- process_data(venn_bc.d3.t30)
+
+data_bc.d5.t1 <- process_data(venn_bc.d5.t1)
+data_bc.d5.t5 <- process_data(venn_bc.d5.t5)
+data_bc.d5.t15 <- process_data(venn_bc.d5.t15)
+data_bc.d5.t30 <- process_data(venn_bc.d5.t30)
+```
+
+Function
+```{r}
+vennplot_ab <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 2) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "#F4FAFE", high = "gray")+
+  scale_color_manual(values = c("A" = "red","B" ="yellow",'AxB' = 'orange'))+
+  theme_void()
+}
+
+vennplot_ac <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 2) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "#F4FAFE", high = "gray")+
+  scale_color_manual(values = c("A" = "red","C" ="blue",'AxC' = 'purple'))+
+  theme_void()
+}
+vennplot_bc <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 2) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "#F4FAFE", high = "gray")+
+  scale_color_manual(values = c("B" = "yellow","C" ="blue",'BxC' = 'darkgreen'))+
+  theme_void()
+}
+```
+Plot
+
+```{r}
+#d1
+vennplot_ab(data_ab.d1.t1) + ggtitle("ab.d1.t1")
+vennplot_ab(data_ab.d1.t5) + ggtitle("ab.d1.t5")
+vennplot_ab(data_ab.d1.t15) + ggtitle("ab.d1.t15")
+vennplot_ab(data_ab.d1.t30) + ggtitle("ab.d1.t30")
+
+vennplot_ac(data_ac.d1.t1) + ggtitle("ac.d1.t1")
+vennplot_ac(data_ac.d1.t5) + ggtitle("ac.d1.t5")
+vennplot_ac(data_ac.d1.t15) + ggtitle("ac.d1.t15")
+vennplot_ac(data_ac.d1.t30) + ggtitle("ac.d1.t30")
+
+vennplot_bc(data_bc.d1.t1) + ggtitle("bc.d1.t1")
+vennplot_bc(data_bc.d1.t5) + ggtitle("bc.d1.t5")
+vennplot_bc(data_bc.d1.t15) + ggtitle("bc.d1.t15")
+vennplot_bc(data_bc.d1.t30) + ggtitle("bc.d1.t30")
+#d3
+vennplot_ab(data_ab.d3.t1) + ggtitle("ab.d3.t1")
+vennplot_ab(data_ab.d3.t5) + ggtitle("ab.d3.t5")
+vennplot_ab(data_ab.d3.t15) + ggtitle("ab.d3.t15")
+vennplot_ab(data_ab.d3.t30) + ggtitle("ab.d3.t30")
+
+vennplot_ac(data_ac.d3.t1) + ggtitle("ac.d3.t1")
+vennplot_ac(data_ac.d3.t5) + ggtitle("ac.d3.t5")
+vennplot_ac(data_ac.d3.t15) + ggtitle("ac.d3.t15")
+vennplot_ac(data_ac.d3.t30) + ggtitle("ac.d3.t30")
+
+vennplot_bc(data_bc.d3.t1) + ggtitle("bc.d3.t1")
+vennplot_bc(data_bc.d3.t5) + ggtitle("bc.d3.t5")
+vennplot_bc(data_bc.d3.t15) + ggtitle("bc.d3.t15")
+vennplot_bc(data_bc.d3.t30) + ggtitle("bc.d3.t30")
+#d5
+vennplot_ab(data_ab.d5.t1) + ggtitle("ab.d5.t1")
+vennplot_ab(data_ab.d5.t5) + ggtitle("ab.d5.t5")
+vennplot_ab(data_ab.d5.t15) + ggtitle("ab.d5.t15")
+vennplot_ab(data_ab.d5.t30) + ggtitle("ab.d5.t30")
+
+vennplot_ac(data_ac.d5.t1) + ggtitle("ac.d5.t1")
+vennplot_ac(data_ac.d5.t5) + ggtitle("ac.d5.t5")
+vennplot_ac(data_ac.d5.t15) + ggtitle("ac.d5.t15")
+vennplot_ac(data_ac.d5.t30) + ggtitle("ac.d5.t30")
+
+vennplot_bc(data_bc.d5.t1) + ggtitle("bc.d5.t1")
+vennplot_bc(data_bc.d5.t5) + ggtitle("bc.d5.t5")
+vennplot_bc(data_bc.d5.t15) + ggtitle("bc.d5.t15")
+vennplot_bc(data_bc.d5.t30) + ggtitle("bc.d5.t30")
+
+```
+
+
+```{r}
+#dat2 <- subset_samples(dat, Diversity %in% c("1", "5")) #remove diversity 3
+
+dat_ab <- subset_samples(dat, Soil %in% c("AxB")) #remove controls
+dat_ac <- subset_samples(dat, Soil %in% c("AxC")) #remove controls
+dat_bc <- subset_samples(dat, Soil %in% c("BxC")) #remove controls
+
+dat_ab_d1 <- subset_samples(dat_ab, Diversity %in% c("1"))
+dat_ab_d3 <- subset_samples(dat_ab, Diversity %in% c("3"))
+dat_ab_d5 <- subset_samples(dat_ab, Diversity %in% c("5"))
+
+dat_ac_d1 <- subset_samples(dat_ac, Diversity %in% c("1"))
+dat_ac_d3 <- subset_samples(dat_ac, Diversity %in% c("3"))
+dat_ac_d5 <- subset_samples(dat_ac, Diversity %in% c("5"))
+
+dat_bc_d1 <- subset_samples(dat_bc, Diversity %in% c("1"))
+dat_bc_d3 <- subset_samples(dat_bc, Diversity %in% c("3"))
+dat_bc_d5 <- subset_samples(dat_bc, Diversity %in% c("5"))
+```
+Create a venn list ang venn plot
+```{r}
+vennlist_ab.d1 <- get_vennlist(obj=dat_ab_d1, factorNames="Time")
+vennlist_ac.d1 <- get_vennlist(obj=dat_ac_d1, factorNames="Time")
+vennlist_bc.d1 <- get_vennlist(obj=dat_bc_d1, factorNames="Time")
+
+vennlist_ab.d3 <- get_vennlist(obj=dat_ab_d3, factorNames="Time")
+vennlist_ac.d3 <- get_vennlist(obj=dat_ac_d3, factorNames="Time")
+vennlist_bc.d3 <- get_vennlist(obj=dat_bc_d3, factorNames="Time")
+
+vennlist_ab.d5 <- get_vennlist(obj=dat_ab_d5, factorNames="Time")
+vennlist_ac.d5 <- get_vennlist(obj=dat_ac_d5, factorNames="Time")
+vennlist_bc.d5 <- get_vennlist(obj=dat_bc_d5, factorNames="Time")
+
+venn_ab.d1 <- Venn(vennlist_ab.d1)
+venn_ac.d1 <- Venn(vennlist_ac.d1)
+venn_bc.d1 <- Venn(vennlist_bc.d1)
+
+venn_ab.d3 <- Venn(vennlist_ab.d3)
+venn_ac.d3 <- Venn(vennlist_ac.d3)
+venn_bc.d3 <- Venn(vennlist_bc.d3)
+
+venn_ab.d5 <- Venn(vennlist_ab.d5)
+venn_ac.d5 <- Venn(vennlist_ac.d5)
+venn_bc.d5 <- Venn(vennlist_bc.d5)
+```
+
+```{r}
+data_ab.d1 <- process_data(venn_ab.d1)
+data_ac.d1 <- process_data(venn_ac.d1)
+data_bc.d1 <- process_data(venn_bc.d1)
+
+data_ab.d3 <- process_data(venn_ab.d3)
+data_ac.d3 <- process_data(venn_ac.d3)
+data_bc.d3 <- process_data(venn_bc.d3)
+
+data_ab.d5 <- process_data(venn_ab.d5)
+data_ac.d5 <- process_data(venn_ac.d5)
+data_bc.d5 <- process_data(venn_bc.d5)
+```
+
+```{r}
+vennplot_ab_mix <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 2) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "#F4FAFE", high = "gray")+
+  scale_color_manual(values = c("T1" = "darkorange", "T5" ="darkorange2", "T15" ="sienna3", "T30" = "sienna"))+
+  theme_void()
+}
+
+vennplot_ac_mix <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 2) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "#F4FAFE", high = "gray")+
+  scale_color_manual(values = c("T1" = "magenta2", "T5" ="darkorchid1", "T15" ="darkorchid3", "T30" = "darkorchid4"))+
+  theme_void()
+}
+
+vennplot_bc_mix <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 2) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "#F4FAFE", high = "gray")+
+  scale_color_manual(values = c("T1" = "springgreen2", "T5" ="springgreen3", "T15" ="springgreen4", "T30" = "darkgreen"))+
+  theme_void()
+}
+
+```
+
+```{r}
+vennplot_ab_mix(data_ab.d1) + ggtitle("ab.d1")
+vennplot_ab_mix(data_ab.d3) + ggtitle("ab.d3")
+vennplot_ab_mix(data_ab.d5) + ggtitle("ab.d5")
+
+vennplot_ac_mix(data_ac.d1) + ggtitle("ac.d1")
+vennplot_ac_mix(data_ac.d3) + ggtitle("ac.d3")
+vennplot_ac_mix(data_ac.d5) + ggtitle("ac.d5")
+
+vennplot_bc_mix(data_bc.d1) + ggtitle("bc.d1")
+vennplot_bc_mix(data_bc.d3) + ggtitle("bc.d3")
+vennplot_bc_mix(data_bc.d5) + ggtitle("bc.d5")
+```
+
+
