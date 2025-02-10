@@ -1,0 +1,217 @@
+---
+title: "soil_properties_pcoa"
+output: html_document
+date: "2025-02-10"
+---
+
+```{r}
+library("phyloseq")
+library("ggplot2")      # graphics
+library("readxl")       # necessary to import the data from Excel file
+library("dplyr")        # filter and reformat data frames
+library("tibble")       # Needed for converting column to row names
+```
+input
+```{r}
+chem_max<-read.csv("./metadata.csv", header = TRUE , row.names = 1, check.names = FALSE )
+chem_tax<-read.csv("./chemistry_tax.csv", header = TRUE, row.names = 1, check.names = FALSE )
+chem_otu<-read.csv("./chemistry_otu.csv", header = TRUE, row.names = 1, check.names = FALSE ) .
+```
+
+
+```{r}
+otu_mat <- as.matrix(chem_otu)
+tax_mat <- as.matrix(chem_tax)
+
+OTU = otu_table(otu_mat, taxa_are_rows = FALSE)
+TAX = tax_table(tax_mat)
+samples = sample_data(chem_max)
+  
+chemistry <- phyloseq(OTU, TAX, samples)
+```
+
+```{r}
+dat_ab <- subset_samples(chemistry, soil %in% c("A", "B", "AxB")) 
+dat_ac <- subset_samples(chemistry, soil %in% c("A", "C", "AxC")) 
+dat_bc <- subset_samples(chemistry, soil %in% c("B", "C", "BxC")) 
+
+dat_controls <- subset_samples(chemistry, soil %in% c("A", "B", "C")) 
+```
+
+Function
+```{r}
+
+ord_pcoa_ab2 <- function (x) {
+  obj <- x
+#Transform to even sampling depth.
+obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+p3 = plot_ordination(obj, obj.ord, type = "samples", color="soil", shape = "soil", label = "rep") +
+scale_color_manual(values=c('red','darkorange', '#FFCC00'))
+#p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+return(p3 + geom_point(size=7) + ggtitle("PCoA"))
+}
+
+
+ord_pcoa_ac2 <- function (x) {
+  obj <- x
+#Transform to even sampling depth.
+obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+p3 = plot_ordination(obj, obj.ord, type = "samples", color="soil", shape = "soil", label = "rep") +
+scale_color_manual(values=c('red', 'purple','blue'))
+#p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+return(p3 + geom_point(size=7) + ggtitle("PCoA"))
+}
+
+ord_pcoa_bc2 <- function (x) {
+  obj <- x
+#Transform to even sampling depth.
+obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+p3 = plot_ordination(obj, obj.ord, type = "samples", color="soil", shape = "soil", label = "rep") +
+scale_color_manual(values=c('#FFCC00', 'darkgreen','blue'))
+#p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+return(p3 + geom_point(size=7) + ggtitle("PCoA"))
+}
+
+
+ord_pcoa_controls <- function (x) {
+  obj <- x
+#Transform to even sampling depth.
+obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+p3 = plot_ordination(obj, obj.ord, type = "samples", color="soil", shape = "soil", label = "rep") +
+scale_color_manual(values=c('red', '#FFCC00', 'blue'))
+#p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+return(p3 + geom_point(size=7) + ggtitle("PCoA"))
+}
+
+
+#euclidean
+
+ord_pcoa_ab_eucledian <- function(x) {
+  obj <- x
+  # Transform to even sampling depth
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  # Calculate Euclidean distance
+  euclidean_dist <- distance(obj, method = "euclidean")
+  # Perform PCoA with Euclidean distance
+  obj.ord <- ordinate(obj, method = "PCoA", distance = euclidean_dist)
+  # Create the plot
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color = "soil", shape = "soil", label = "rep") +
+    scale_color_manual(values = c('red', 'darkorange', '#FFCC00'))
+  return(p3 + geom_point(size = 7) + ggtitle("PCoA - Euclidean Distance"))
+}
+
+
+
+ord_pcoa_ac_eucledian <- function(x) {
+  obj <- x
+  # Transform to even sampling depth
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  # Calculate Euclidean distance
+  euclidean_dist <- distance(obj, method = "euclidean")
+  # Perform PCoA with Euclidean distance
+  obj.ord <- ordinate(obj, method = "PCoA", distance = euclidean_dist)
+  # Create the plot
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color = "soil", shape = "soil", label = "rep") +
+    scale_color_manual(values = c('red', 'purple','blue'))
+  return(p3 + geom_point(size = 7) + ggtitle("PCoA - Euclidean Distance"))
+}
+ord_pcoa_bc_eucledian <- function(x) {
+  obj <- x
+  # Transform to even sampling depth
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  # Calculate Euclidean distance
+  euclidean_dist <- distance(obj, method = "euclidean")
+  # Perform PCoA with Euclidean distance
+  obj.ord <- ordinate(obj, method = "PCoA", distance = euclidean_dist)
+  # Create the plot
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color = "soil", shape = "soil", label = "rep") +
+    scale_color_manual(values = c('#FFCC00', 'darkgreen','blue'))
+  return(p3 + geom_point(size = 7) + ggtitle("PCoA - Euclidean Distance"))
+}
+
+ord_pcoa_controls_eucledian <- function(x) {
+  obj <- x
+  # Transform to even sampling depth
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  # Calculate Euclidean distance
+  euclidean_dist <- distance(obj, method = "euclidean")
+  # Perform PCoA with Euclidean distance
+  obj.ord <- ordinate(obj, method = "PCoA", distance = euclidean_dist)
+  # Create the plot
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color = "soil", shape = "soil", label = "rep") +
+    scale_color_manual(values = c('red', '#FFCC00', 'blue'))
+  return(p3 + geom_point(size = 7) + ggtitle("PCoA - Euclidean Distance"))
+}
+
+```
+
+plot
+```{r}
+theme_set(theme_bw()) #set the ggplot2 theme
+ord_ab <- ord_pcoa_ab2(dat_ab)
+ord_ac <- ord_pcoa_ac2(dat_ac)
+ord_bc <- ord_pcoa_bc2(dat_bc)
+ord_controls <- ord_pcoa_controls(dat_controls)
+
+ord_ab
+ord_ac
+ord_bc
+ord_controls
+
+ord_ab_eu <- ord_pcoa_ab_eucledian(dat_ab)
+ord_ac_eu <- ord_pcoa_ac_eucledian(dat_ac)
+ord_bc_eu <- ord_pcoa_bc_eucledian(dat_bc)
+ord_controls_eu <- ord_pcoa_controls_eucledian(dat_controls)
+
+theme_set(theme_classic())
+
+ord_ab_eu + scale_x_reverse()
+ord_ac_eu + scale_y_reverse() + scale_x_reverse()
+ord_bc_eu
+ord_controls_eu
+
+
+```
+
+Permanova bray
+```{r}
+#Calculate bray curtis distance matrix
+Permanova_bray_ab <- phyloseq::distance(dat_ab, method = "bray")
+Permanova_bray_ac <- phyloseq::distance(dat_ac, method = "bray")
+Permanova_bray_bc <- phyloseq::distance(dat_bc, method = "bray")
+
+#make a data frame from the sample_data
+sampledf_ab <- data.frame(sample_data(dat_ab))
+sampledf_ac <- data.frame(sample_data(dat_ac))
+sampledf_bc <- data.frame(sample_data(dat_bc))
+View(sampledf)
+library(vegan)
+adonis(Permanova_bray_ab ~soil , data = sampledf_ab) #p=0.004
+adonis(Permanova_bray_ac ~soil , data = sampledf_ac) #p=0.003
+adonis(Permanova_bray_bc ~soil , data = sampledf_bc) #p=0.007
+```
+
+
+
+```{r}
+#Calculate bray curtis distance matrix
+Permanova_bray_ab_eu <- phyloseq::distance(dat_ab, method = "euclidean")
+Permanova_bray_ac_eu <- phyloseq::distance(dat_ac, method = "euclidean")
+Permanova_bray_bc_eu <- phyloseq::distance(dat_bc, method = "euclidean")
+
+#make a data frame from the sample_data
+sampledf_ab_eu <- data.frame(sample_data(dat_ab))
+sampledf_ac_eu <- data.frame(sample_data(dat_ac))
+sampledf_bc_eu <- data.frame(sample_data(dat_bc))
+View(sampledf)
+library(vegan)
+adonis(Permanova_bray_ab_eu ~soil , data = sampledf_ab_eu) #p=0.005
+adonis(Permanova_bray_ac_eu ~soil , data = sampledf_ac_eu) #p=0.006
+adonis(Permanova_bray_bc_eu ~soil , data = sampledf_bc_eu) #p=0.006
+
+```
+
