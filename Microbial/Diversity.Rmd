@@ -1,0 +1,780 @@
+---
+title: "Diversity"
+output: html_document
+date: "2025-02-10"
+---
+
+---
+Title: diversity metrics
+  Data: 16S sequencing - rarefied
+
+Included:
+  1. Load phyloseq object
+  2. Check controls diversity (plot)
+  3. Calculate diversity metrics and create a dataframe containing the metrics and the metadata 
+      - include c("Observed", "Chao1", "ACE", "Shannon", "Simpson", "InvSimpson", "Fisher", evenness).
+  4. Subset per soil set
+  5. Plot Chao1
+  6. Plot Shannon
+  7. Subset by soil set & diversity for *stats
+  8. Creating anova function for each variable 
+      - Chao1 and Shannon
+  9. Anova Chao1
+  10. Anova Shannon
+  ------------using phyloseq_coalescence_rarefied_removed_outliers.Rdata
+---
+
+#0.Load library
+```{r}
+library(phyloseq)
+library(ggplot2)
+library(agricolae)
+```
+#1. Load phyloseq object
+```{r}
+load("./phyloseq.Rdata")
+dat <- ps_rare2
+```
+
+#3. Calculate diversity metrics and create a dataframe containing the metrics and the metadata 
+```{r}
+#library(tibble)
+dat_rich <- estimate_richness(dat, split = TRUE, measures = NULL)
+dat_rich$ID <- row.names(dat_rich)
+dat_rich$ID <- gsub("\\.", "-", dat_rich$ID)
+
+#load metadata
+metadata=read.csv("metadata_coalescence.csv", header = TRUE )
+
+dat_rich.id <- merge(dat_rich, metadata, by= "ID")
+```
+
+#4. Subset per soil set
+```{r}
+dat_rich.id
+#set the order of factors levels
+dat_rich.id$Soil <- factor(dat_rich.id$Soil, levels = c("A", "B", "C", "AxB", "AxC", "BxC"))
+dat_rich.id$Time <- factor(dat_rich.id$Time, levels = c("T1", "T5", "T15", "T30"))
+
+#subset per soil set
+rich_ab <- subset(dat_rich.id, Soil %in% c("A", "B", "AxB"))
+rich_ac <- subset(dat_rich.id, Soil %in% c("A", "C", "AxC"))
+rich_bc <- subset(dat_rich.id, Soil %in% c("B", "C", "BxC"))
+
+rich_mix_ab <- subset(dat_rich.id, Soil %in% c("AxB"))
+rich_mix_ac <- subset(dat_rich.id, Soil %in% c("AxC"))
+rich_mix_bc <- subset(dat_rich.id, Soil %in% c("BxC"))
+
+rich_mix_ab_d1 <- subset(rich_mix_ab, Diversity %in% c("1"))
+rich_mix_ac_d1 <- subset(rich_mix_ac, Diversity %in% c("1"))
+rich_mix_bc_d1 <- subset(rich_mix_bc, Diversity %in% c("1"))
+
+rich_mix_ab_d3 <- subset(rich_mix_ab, Diversity %in% c("3"))
+rich_mix_ac_d3 <- subset(rich_mix_ac, Diversity %in% c("3"))
+rich_mix_bc_d3 <- subset(rich_mix_bc, Diversity %in% c("3"))
+
+rich_mix_ab_d5 <- subset(rich_mix_ab, Diversity %in% c("5"))
+rich_mix_ac_d5 <- subset(rich_mix_ac, Diversity %in% c("5"))
+rich_mix_bc_d5 <- subset(rich_mix_bc, Diversity %in% c("5"))
+```
+
+#5. Observed1 Plot
+```{r}
+ggplot(rich_ab, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Observed ab")
+
+ggplot(rich_ac, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Observed ac")
+
+ggplot(rich_bc, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Observed bc")
+
+#only coalesced
+ggplot(rich_mix_ab, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('darkorange')) +
+  scale_fill_manual(values=c('darkorange')) +
+  theme_bw() + ggtitle("Observed ab mix")
+
+ggplot(rich_mix_ac, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('purple')) +
+  scale_fill_manual(values=c('purple')) +
+  theme_bw() + ggtitle("Observed ac mix")
+
+ggplot(rich_mix_bc, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('darkgreen')) +
+  scale_fill_manual(values=c('darkgreen')) +
+  theme_bw() + ggtitle("Observed bc mix")
+
+
+```
+
+```{r}
+#only coalesced
+ggplot(rich_mix_ab_d1, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + geom_point(position=position_jitterdodge(),alpha=0.3) +scale_color_manual(values=c('darkorange')) +
+  scale_fill_manual(values=c('white')) +theme_bw() + ggtitle("Observed ab mix d1")
+
+ggplot(rich_mix_ac_d1, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('purple')) +
+  scale_fill_manual(values=c('white')) + theme_bw() + ggtitle("Observed ac mix d1")
+
+ggplot(rich_mix_bc_d1, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  geom_boxplot() +
+  geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('darkgreen'))+
+  scale_fill_manual(values=c('white')) + theme_bw() + ggtitle("Observed bc mix d1")
+
+ggplot(rich_mix_ab_d5, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + geom_point(position=position_jitterdodge(),alpha=0.3) +scale_color_manual(values=c('darkorange')) +
+  scale_fill_manual(values=c('white')) +theme_bw() + ggtitle("Observed ab mix d5")
+
+ggplot(rich_mix_ac_d5, aes(x=Time, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('purple')) +
+  scale_fill_manual(values=c('white')) + theme_bw() + ggtitle("Observed ac mix d5")
+
+ggplot(rich_mix_bc_d5, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  geom_boxplot() +
+  geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('darkgreen'))+
+  scale_fill_manual(values=c('white')) + theme_bw() + ggtitle("Observed bc mix d5")
+
+
+```
+
+
+#5. Chao1 Plot
+```{r}
+ggplot(rich_ab, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Chao1 ab")
+
+ggplot(rich_ac, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Chao1 ac")
+
+ggplot(rich_bc, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Chao1 bc")
+
+```
+#6. Shannon Plot
+```{r}
+ggplot(rich_ab, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Shannon ab")
+
+ggplot(rich_ac, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Shannon ac")
+
+ggplot(rich_bc, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Shannon bc")
+
+```
+
+#6. Simpson Plot
+```{r}
+ggplot(rich_ab, aes(x=Time, y=Simpson, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Simpson ab")
+
+ggplot(rich_ac, aes(x=Time, y=Simpson, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Simpson ac")
+
+ggplot(rich_bc, aes(x=Time, y=Simpson, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Diversity, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) + scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Simpson bc")
+
+```
+#7. Subset by soil set + diversity for stats
+```{r}
+dat_rich.id #total - complete
+
+#Per set
+rich_ab.d1 <- subset(rich_ab, Diversity %in% c("1")) 
+rich_ab.d3 <- subset(rich_ab, Diversity %in% c("3"))
+rich_ab.d5 <- subset(rich_ab, Diversity %in% c("5"))
+
+rich_ac.d1 <- subset(rich_ac, Diversity %in% c("1"))
+rich_ac.d3 <- subset(rich_ac, Diversity %in% c("3"))
+rich_ac.d5 <- subset(rich_ac, Diversity %in% c("5"))
+
+rich_bc.d1 <- subset(rich_bc, Diversity %in% c("1"))
+rich_bc.d3 <- subset(rich_bc, Diversity %in% c("3"))
+rich_bc.d5 <- subset(rich_bc, Diversity %in% c("5"))
+
+rich_ab.d1.t1 <- subset(rich_ab.d1, Time %in% c("T1"))
+```
+#8. Creating anova function for each variable 
+```{r}
+anova.obs <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil,Time))
+  x.aov <- aov(data = x, Observed ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+
+anova.chao1 <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil,Time))
+  x.aov <- aov(data = x, Chao1 ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+  
+anova.shannon <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil,Time))
+  x.aov <- aov(data = x, Shannon ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+
+  
+anova.evenness <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil,Time))
+  x.aov <- aov(data = x, evenness ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+```
+
+#9. Anova Observed
+```{r}
+obs_mix_ab.d1 <- anova.obs(rich_mix_ab_d1)
+obs_mix_ab.d3 <- anova.obs(rich_mix_ab_d3)
+obs_mix_ab.d5 <- anova.obs(rich_mix_ab_d5)
+
+obs_mix_ac.d1 <- anova.obs(rich_mix_ac_d1)
+obs_mix_ac.d3 <- anova.obs(rich_mix_ac_d3)
+obs_mix_ac.d5 <- anova.obs(rich_mix_ac_d5)
+
+obs_mix_bc.d1 <- anova.obs(rich_mix_bc_d1)
+obs_mix_bc.d3 <- anova.obs(rich_mix_bc_d3)
+obs_mix_bc.d5 <- anova.obs(rich_mix_bc_d5)
+
+aov_obs_ab_d1 <- aov(data=rich_mix_ab_d1, Observed~Time)
+tukey_obs_ab_d1 <- TukeyHSD(aov_obs_ab_d1, conf.level = 0.95)
+aov_obs_ab_d5 <- aov(data=rich_mix_ab_d5, Observed~Time)
+tukey_obs_ab_d5 <- TukeyHSD(aov_obs_ab_d5, conf.level = 0.95)
+
+aov_obs_ac_d1 <- aov(data=rich_mix_ac_d1, Observed~Time)
+tukey_obs_ac_d1 <- TukeyHSD(aov_obs_ac_d1, conf.level = 0.95)
+aov_obs_ac_d5 <- aov(data=rich_mix_ac_d5, Observed~Time)
+tukey_obs_ac_d5 <- TukeyHSD(aov_obs_ac_d5, conf.level = 0.95)
+
+aov_obs_bc_d1 <- aov(data=rich_mix_bc_d1, Observed~Time)
+tukey_obs_bc_d1 <- TukeyHSD(aov_obs_bc_d1, conf.level = 0.95)
+aov_obs_bc_d5 <- aov(data=rich_mix_bc_d5, Observed~Time)
+tukey_obs_bc_d5 <- TukeyHSD(aov_obs_bc_d5, conf.level = 0.95)
+
+obs_mix_ab.d1
+tukey_obs_ab_d1 
+obs_mix_ab.d5 
+tukey_obs_ab_d5
+
+obs_mix_ac.d1
+tukey_obs_ac_d1 
+obs_mix_ac.d5 
+tukey_obs_ac_d5 
+
+obs_mix_bc.d1
+tukey_obs_bc_d1 
+obs_mix_bc.d5 
+tukey_obs_bc_d5
+
+```
+
+#9. Anova Chao1
+```{r}
+chao1_ab.d1 <- anova.chao1(rich_ab.d1)
+chao1_ab.d3 <- anova.chao1(rich_ab.d3)
+chao1_ab.d5 <- anova.chao1(rich_ab.d5)
+
+chao1_ac.d1 <- anova.chao1(rich_ac.d1)
+chao1_ac.d3 <- anova.chao1(rich_ac.d3)
+chao1_ac.d5 <- anova.chao1(rich_ac.d5)
+
+chao1_bc.d1 <- anova.chao1(rich_bc.d1)
+chao1_bc.d3 <- anova.chao1(rich_bc.d3)
+chao1_bc.d5 <- anova.chao1(rich_bc.d5)
+```
+
+#10. Anova Shannon
+```{r}
+shan_ab.d1 <- anova.shannon(rich_ab.d1)
+shan_ab.d3 <- anova.shannon(rich_ab.d3)
+shan_ab.d5 <- anova.shannon(rich_ab.d5)
+
+shan_ac.d1 <- anova.shannon(rich_ac.d1)
+shan_ac.d3 <- anova.shannon(rich_ac.d3)
+shan_ac.d5 <- anova.shannon(rich_ac.d5)
+
+shan_bc.d1 <- anova.shannon(rich_bc.d1)
+shan_bc.d3 <- anova.shannon(rich_bc.d3)
+shan_bc.d5 <- anova.shannon(rich_bc.d5)
+
+shan_ab.d1
+shan_ab.d3
+shan_ab.d5
+
+shan_ac.d1
+shan_ac.d3
+shan_ac.d5
+
+shan_bc.d1
+shan_bc.d3
+shan_bc.d5
+```
+
+# remove all the time points except the t1 for the donors -  do the stats
+```{r}
+rich_ab 
+rich_ac 
+rich_bc 
+
+rich_ab_don_t1 <- rich_ab[!(rich_ab$Soil == "A" & rich_ab$Time == "T5"), ]
+rich_ab_don_t1 <- rich_ab_don_t1[!(rich_ab_don_t1$Soil == "A" & rich_ab_don_t1$Time == "T15"), ]
+rich_ab_don_t1 <- rich_ab_don_t1[!(rich_ab_don_t1$Soil == "A" & rich_ab_don_t1$Time == "T30"), ]
+rich_ab_don_t1 <- rich_ab_don_t1[!(rich_ab_don_t1$Soil == "B" & rich_ab_don_t1$Time == "T5"), ]
+rich_ab_don_t1 <- rich_ab_don_t1[!(rich_ab_don_t1$Soil == "B" & rich_ab_don_t1$Time == "T15"), ]
+rich_ab_don_t1 <- rich_ab_don_t1[!(rich_ab_don_t1$Soil == "B" & rich_ab_don_t1$Time == "T30"), ]
+
+rich_ac_don_t1 <- rich_ac[!(rich_ac$Soil == "A" & rich_ac$Time == "T5"), ]
+rich_ac_don_t1 <- rich_ac_don_t1[!(rich_ac_don_t1$Soil == "A" & rich_ac_don_t1$Time == "T15"), ]
+rich_ac_don_t1 <- rich_ac_don_t1[!(rich_ac_don_t1$Soil == "A" & rich_ac_don_t1$Time == "T30"), ]
+rich_ac_don_t1 <- rich_ac_don_t1[!(rich_ac_don_t1$Soil == "C" & rich_ac_don_t1$Time == "T5"), ]
+rich_ac_don_t1 <- rich_ac_don_t1[!(rich_ac_don_t1$Soil == "C" & rich_ac_don_t1$Time == "T15"), ]
+rich_ac_don_t1 <- rich_ac_don_t1[!(rich_ac_don_t1$Soil == "C" & rich_ac_don_t1$Time == "T30"), ]
+
+rich_bc_don_t1 <- rich_bc[!(rich_bc$Soil == "C" & rich_bc$Time == "T5"), ]
+rich_bc_don_t1 <- rich_bc_don_t1[!(rich_bc_don_t1$Soil == "C" & rich_bc_don_t1$Time == "T15"), ]
+rich_bc_don_t1 <- rich_bc_don_t1[!(rich_bc_don_t1$Soil == "C" & rich_bc_don_t1$Time == "T30"), ]
+rich_bc_don_t1 <- rich_bc_don_t1[!(rich_bc_don_t1$Soil == "B" & rich_bc_don_t1$Time == "T5"), ]
+rich_bc_don_t1 <- rich_bc_don_t1[!(rich_bc_don_t1$Soil == "B" & rich_bc_don_t1$Time == "T15"), ]
+rich_bc_don_t1 <- rich_bc_don_t1[!(rich_bc_don_t1$Soil == "B" & rich_bc_don_t1$Time == "T30"), ]
+
+rich_ab_don_t1_d1 <- subset(rich_ab_don_t1, Diversity %in% c("1"))
+rich_ab_don_t1_d3 <- subset(rich_ab_don_t1, Diversity %in% c("3"))
+rich_ab_don_t1_d5 <- subset(rich_ab_don_t1, Diversity %in% c("5"))
+
+rich_ac_don_t1_d1 <- subset(rich_ac_don_t1, Diversity %in% c("1"))
+rich_ac_don_t1_d3 <- subset(rich_ac_don_t1, Diversity %in% c("3"))
+rich_ac_don_t1_d5 <- subset(rich_ac_don_t1, Diversity %in% c("5"))
+
+rich_bc_don_t1_d1 <- subset(rich_bc_don_t1, Diversity %in% c("1"))
+rich_bc_don_t1_d3 <- subset(rich_bc_don_t1, Diversity %in% c("3"))
+rich_bc_don_t1_d5 <- subset(rich_bc_don_t1, Diversity %in% c("5"))
+```
+
+Calculate evenness
+```{r}
+rich_ab_don_t1_d1$S <- log(rich_ab_don_t1_d1$Observed)
+rich_ab_don_t1_d1$evenness <- rich_ab_don_t1_d1$Shannon/rich_ab_don_t1_d1$S
+rich_ab_don_t1_d3$S <- log(rich_ab_don_t1_d3$Observed)
+rich_ab_don_t1_d3$evenness <- rich_ab_don_t1_d3$Shannon/rich_ab_don_t1_d3$S
+rich_ab_don_t1_d5$S <- log(rich_ab_don_t1_d5$Observed)
+rich_ab_don_t1_d5$evenness <- rich_ab_don_t1_d5$Shannon/rich_ab_don_t1_d5$S
+
+rich_ac_don_t1_d1$S <- log(rich_ac_don_t1_d1$Observed)
+rich_ac_don_t1_d1$evenness <- rich_ac_don_t1_d1$Shannon/rich_ac_don_t1_d1$S
+rich_ac_don_t1_d3$S <- log(rich_ac_don_t1_d3$Observed)
+rich_ac_don_t1_d3$evenness <- rich_ac_don_t1_d3$Shannon/rich_ac_don_t1_d3$S
+rich_ac_don_t1_d5$S <- log(rich_ac_don_t1_d5$Observed)
+rich_ac_don_t1_d5$evenness <- rich_ac_don_t1_d5$Shannon/rich_ac_don_t1_d5$S
+
+rich_bc_don_t1_d1$S <- log(rich_bc_don_t1_d1$Observed)
+rich_bc_don_t1_d1$evenness <- rich_bc_don_t1_d1$Shannon/rich_bc_don_t1_d1$S
+rich_bc_don_t1_d3$S <- log(rich_bc_don_t1_d3$Observed)
+rich_bc_don_t1_d3$evenness <- rich_bc_don_t1_d3$Shannon/rich_bc_don_t1_d3$S
+rich_bc_don_t1_d5$S <- log(rich_bc_don_t1_d5$Observed)
+rich_bc_don_t1_d5$evenness <- rich_bc_don_t1_d5$Shannon/rich_bc_don_t1_d5$S
+
+```
+here is all the data donor t1 vs coalescence all time points
+Observed ASVs
+```{r}
+obs_ab_don_t1_d1 <- anova.obs(rich_ab_don_t1_d1)
+obs_ab_don_t1_d3 <- anova.obs(rich_ab_don_t1_d3)
+obs_ab_don_t1_d5 <- anova.obs(rich_ab_don_t1_d5)
+
+obs_ac_don_t1_d1 <- anova.obs(rich_ac_don_t1_d1)
+obs_ac_don_t1_d3 <- anova.obs(rich_ac_don_t1_d3)
+obs_ac_don_t1_d5 <- anova.obs(rich_ac_don_t1_d5)
+
+obs_bc_don_t1_d1 <- anova.obs(rich_bc_don_t1_d1)
+obs_bc_don_t1_d3 <- anova.obs(rich_bc_don_t1_d3)
+obs_bc_don_t1_d5 <- anova.obs(rich_bc_don_t1_d5)
+```
+Chao1
+```{r}
+Chao1_ab_don_t1_d1 <- anova.chao1(rich_ab_don_t1_d1)
+Chao1_ab_don_t1_d3 <- anova.chao1(rich_ab_don_t1_d3)
+Chao1_ab_don_t1_d5 <- anova.chao1(rich_ab_don_t1_d5)
+
+Chao1_ac_don_t1_d1 <- anova.chao1(rich_ac_don_t1_d1)
+Chao1_ac_don_t1_d3 <- anova.chao1(rich_ac_don_t1_d3)
+Chao1_ac_don_t1_d5 <- anova.chao1(rich_ac_don_t1_d5)
+
+Chao1_bc_don_t1_d1 <- anova.chao1(rich_bc_don_t1_d1)
+Chao1_bc_don_t1_d3 <- anova.chao1(rich_bc_don_t1_d3)
+Chao1_bc_don_t1_d5 <- anova.chao1(rich_bc_don_t1_d5)
+```
+Shannon
+```{r}
+Shannon_ab_don_t1_d1 <- anova.shannon(rich_ab_don_t1_d1)
+Shannon_ab_don_t1_d3 <- anova.shannon(rich_ab_don_t1_d3)
+Shannon_ab_don_t1_d5 <- anova.shannon(rich_ab_don_t1_d5)
+
+Shannon_ac_don_t1_d1 <- anova.shannon(rich_ac_don_t1_d1)
+Shannon_ac_don_t1_d3 <- anova.shannon(rich_ac_don_t1_d3)
+Shannon_ac_don_t1_d5 <- anova.shannon(rich_ac_don_t1_d5)
+
+Shannon_bc_don_t1_d1 <- anova.shannon(rich_bc_don_t1_d1)
+Shannon_bc_don_t1_d3 <- anova.shannon(rich_bc_don_t1_d3)
+Shannon_bc_don_t1_d5 <- anova.shannon(rich_bc_don_t1_d5)
+```
+Evenness
+```{r}
+Evenness_ab_don_t1_d1 <- anova.evenness(rich_ab_don_t1_d1)
+Evenness_ab_don_t1_d3 <- anova.evenness(rich_ab_don_t1_d3)
+Evenness_ab_don_t1_d5 <- anova.evenness(rich_ab_don_t1_d5)
+
+Evenness_ac_don_t1_d1 <- anova.evenness(rich_ac_don_t1_d1)
+Evenness_ac_don_t1_d3 <- anova.evenness(rich_ac_don_t1_d3)
+Evenness_ac_don_t1_d5 <- anova.evenness(rich_ac_don_t1_d5)
+
+Evenness_bc_don_t1_d1 <- anova.evenness(rich_bc_don_t1_d1)
+Evenness_bc_don_t1_d3 <- anova.evenness(rich_bc_don_t1_d3)
+Evenness_bc_don_t1_d5 <- anova.evenness(rich_bc_don_t1_d5)
+```
+
+# Plots!
+
+```{r}
+#install.packages("see")
+ 
+library(ggplot2)
+library(see)
+
+#ab
+ggplot(rich_ab_don_t1_d1, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Observed ab") 
+
+ggplot(rich_ab_don_t1_d3, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Observed ab") 
+
+ggplot(rich_ab_don_t1_d5, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Observed ab") 
+
+#ac
+ggplot(rich_ac_don_t1_d1, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Observed ac") 
+
+ggplot(rich_ac_don_t1_d3, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Observed ac") 
+
+ggplot(rich_ac_don_t1_d5, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Observed ac") 
+
+#bc
+ggplot(rich_bc_don_t1_d1, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Observed bc") 
+
+ggplot(rich_bc_don_t1_d3, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Observed bc") 
+
+ggplot(rich_bc_don_t1_d5, aes(x=Time, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Observed bc") 
+
+
+```
+
+Plot Chao1 
+```{r}
+#ab
+ggplot(rich_ab_don_t1_d1, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Chao1 ab") 
+
+ggplot(rich_ab_don_t1_d3, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Chao1 ab") 
+
+ggplot(rich_ab_don_t1_d5, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Chao1 ab") 
+
+#ac
+ggplot(rich_ac_don_t1_d1, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Chao1 ac") 
+
+ggplot(rich_ac_don_t1_d3, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Chao1 ac") 
+
+ggplot(rich_ac_don_t1_d5, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Chao1 ac") 
+
+#bc
+ggplot(rich_bc_don_t1_d1, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Chao1 bc") 
+
+ggplot(rich_bc_don_t1_d3, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Chao1 bc") 
+
+ggplot(rich_bc_don_t1_d5, aes(x=Time, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(100, 1100) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Chao1 bc") 
+```
+
+
+```{r}
+#ab
+ggplot(rich_ab_don_t1_d1, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Shannon ab") 
+
+ggplot(rich_ab_don_t1_d3, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Shannon ab") 
+
+ggplot(rich_ab_don_t1_d5, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("Shannon ab") 
+
+#ac
+ggplot(rich_ac_don_t1_d1, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Shannon ac") 
+
+ggplot(rich_ac_don_t1_d3, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Shannon ac") 
+
+ggplot(rich_ac_don_t1_d5, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("Shannon ac") 
+
+#bc
+ggplot(rich_bc_don_t1_d1, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Shannon bc") 
+
+ggplot(rich_bc_don_t1_d3, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Shannon bc") 
+
+ggplot(rich_bc_don_t1_d5, aes(x=Time, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(3.8, 7) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("Shannon bc") 
+
+
+```
+
+Plot evenness 
+
+```{r}
+#ab
+ggplot(rich_ab_don_t1_d1, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("evenness ab") 
+
+ggplot(rich_ab_don_t1_d3, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("evenness ab") 
+
+ggplot(rich_ab_don_t1_d5, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('red','#FFCC00', 'darkorange')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'darkorange')) +
+  theme_bw() + ggtitle("evenness ab") 
+
+#ac
+ggplot(rich_ac_don_t1_d1, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("evenness ac") 
+
+ggplot(rich_ac_don_t1_d3, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("evenness ac") 
+
+ggplot(rich_ac_don_t1_d5, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('red','blue', 'purple')) +
+  scale_fill_manual(values=c('red','blue', 'purple')) +
+  theme_bw() + ggtitle("evenness ac") 
+
+#bc
+ggplot(rich_bc_don_t1_d1, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("evenness bc") 
+
+ggplot(rich_bc_don_t1_d3, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("evenness bc") 
+
+ggplot(rich_bc_don_t1_d5, aes(x=Time, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.07, alpha=.8, position = position_nudge(x = -0.1))+ facet_grid(~Diversity, scales= "free") + 
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + ylim(.65, .94) +
+  scale_color_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  scale_fill_manual(values=c('#FFCC00','blue', 'darkgreen')) +
+  theme_bw() + ggtitle("evenness bc") 
+
+
+```
