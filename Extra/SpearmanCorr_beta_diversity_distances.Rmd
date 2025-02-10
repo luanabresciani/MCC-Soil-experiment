@@ -1,0 +1,293 @@
+---
+title: "SpearmanCorr_beta_diversity_distances"
+output: html_document
+date: "2025-02-10"
+---
+
+input 
+```{r}
+#setwd("~/Desktop/GitProjects/Coalescence/")
+
+comm_ab_d1_js <-read.csv("./microbial_community/ab_d1_Jensen-Shannon_distances.csv")
+comm_ab_d3_js <-read.csv("./microbial_community/ab_d3_Jensen-Shannon_distances.csv")
+comm_ab_d5_js <-read.csv("./microbial_community/ab_d5_Jensen-Shannon_distances.csv")
+comm_ac_d1_js <-read.csv("./microbial_community/ac_d1_Jensen-Shannon_distances.csv")
+comm_ac_d3_js <-read.csv("./microbial_community/ac_d3_Jensen-Shannon_distances.csv")
+comm_ac_d5_js <-read.csv("./microbial_community/ac_d5_Jensen-Shannon_distances.csv")
+comm_bc_d1_js <-read.csv("./microbial_community/bc_d1_Jensen-Shannon_distances.csv")
+comm_bc_d3_js <-read.csv("./microbial_community/bc_d3_Jensen-Shannon_distances.csv")
+comm_bc_d5_js <-read.csv("./microbial_community/bc_d5_Jensen-Shannon_distances.csv")
+
+biolog_ab_d1_js <-read.csv("./carbon_metabolism/ab_d1_Jensen-Shannon_distances.csv")
+biolog_ab_d3_js <-read.csv("./carbon_metabolism/ab_d3_Jensen-Shannon_distances.csv")
+biolog_ab_d5_js <-read.csv("./carbon_metabolism/ab_d5_Jensen-Shannon_distances.csv")
+biolog_ac_d1_js <-read.csv("./carbon_metabolism/ac_d1_Jensen-Shannon_distances.csv")
+biolog_ac_d3_js <-read.csv("./carbon_metabolism/ac_d3_Jensen-Shannon_distances.csv")
+biolog_ac_d5_js <-read.csv("./carbon_metabolism/ac_d5_Jensen-Shannon_distances.csv")
+biolog_bc_d1_js <-read.csv("./carbon_metabolism/bc_d1_Jensen-Shannon_distances.csv")
+biolog_bc_d3_js <-read.csv("./carbon_metabolism/bc_d3_Jensen-Shannon_distances.csv")
+biolog_bc_d5_js <-read.csv("./carbon_metabolism/bc_d5_Jensen-Shannon_distances.csv")
+
+enzy_ab_d1_js <-read.csv("./enzymatic_activity/ab_d1_Jensen-Shannon_distances.csv")
+enzy_ab_d3_js <-read.csv("./enzymatic_activity/ab_d3_Jensen-Shannon_distances.csv")
+enzy_ab_d5_js <-read.csv("./enzymatic_activity/ab_d5_Jensen-Shannon_distances.csv")
+enzy_ac_d1_js <-read.csv("./enzymatic_activity/ac_d1_Jensen-Shannon_distances.csv")
+enzy_ac_d3_js <-read.csv("./enzymatic_activity/ac_d3_Jensen-Shannon_distances.csv")
+enzy_ac_d5_js <-read.csv("./enzymatic_activity/ac_d5_Jensen-Shannon_distances.csv")
+enzy_bc_d1_js <-read.csv("./enzymatic_activity/bc_d1_Jensen-Shannon_distances.csv")
+enzy_bc_d3_js <-read.csv("./enzymatic_activity/bc_d3_Jensen-Shannon_distances.csv")
+enzy_bc_d5_js <-read.csv("./enzymatic_activity/bc_d5_Jensen-Shannon_distances.csv")
+
+```
+
+```{r}
+format_comm <- function(x) {
+names(x)[names(x) == "Values"] <- "Comm_dist"
+a <- x[, -1]
+a$id <- paste(a$Time, "_", a$rep, sep = "")
+return(a)
+}
+format_biolog <- function(x) {
+names(x)[names(x) == "Values"] <- "Biolog_dist"
+a <- x[, -1]
+a$id <- paste(a$Time, "_", a$rep, sep = "")
+return(a)
+}
+format_enzy <- function(x) {
+names(x)[names(x) == "Values"] <- "Enzy_dist"
+a <- x[, -1]
+a$id <- paste(a$Time, "_", a$rep, sep = "")
+return(a)
+}
+
+```
+
+format
+```{r}
+comm_ab_d1_js.2 <- format_comm(comm_ab_d1_js)
+comm_ab_d3_js.2 <- format_comm(comm_ab_d3_js)
+comm_ab_d5_js.2 <- format_comm(comm_ab_d5_js)
+comm_ac_d1_js.2 <- format_comm(comm_ac_d1_js)
+comm_ac_d3_js.2 <- format_comm(comm_ac_d3_js)
+comm_ac_d5_js.2 <- format_comm(comm_ac_d5_js)
+comm_bc_d1_js.2 <- format_comm(comm_bc_d1_js)
+comm_bc_d3_js.2 <- format_comm(comm_bc_d3_js)
+comm_bc_d5_js.2 <- format_comm(comm_bc_d5_js)
+
+biolog_ab_d1_js.2 <- format_biolog(biolog_ab_d1_js)
+biolog_ab_d3_js.2 <- format_biolog(biolog_ab_d3_js)
+biolog_ab_d5_js.2 <- format_biolog(biolog_ab_d5_js)
+biolog_ac_d1_js.2 <- format_biolog(biolog_ac_d1_js)
+biolog_ac_d3_js.2 <- format_biolog(biolog_ac_d3_js)
+biolog_ac_d5_js.2 <- format_biolog(biolog_ac_d5_js)
+biolog_bc_d1_js.2 <- format_biolog(biolog_bc_d1_js)
+biolog_bc_d3_js.2 <- format_biolog(biolog_bc_d3_js)
+biolog_bc_d5_js.2 <- format_biolog(biolog_bc_d5_js)
+
+enzy_ab_d1_js.2 <- format_enzy(enzy_ab_d1_js)
+enzy_ab_d3_js.2 <- format_enzy(enzy_ab_d3_js)
+enzy_ab_d5_js.2 <- format_enzy(enzy_ab_d5_js)
+enzy_ac_d1_js.2 <- format_enzy(enzy_ac_d1_js)
+enzy_ac_d3_js.2 <- format_enzy(enzy_ac_d3_js)
+enzy_ac_d5_js.2 <- format_enzy(enzy_ac_d5_js)
+enzy_bc_d1_js.2 <- format_enzy(enzy_bc_d1_js)
+enzy_bc_d3_js.2 <- format_enzy(enzy_bc_d3_js)
+enzy_bc_d5_js.2 <- format_enzy(enzy_bc_d5_js)
+
+```
+
+merge comm + biolog + enzyme
+```{r}
+#comm + biolog
+ab_d1_js <- merge(comm_ab_d1_js.2, biolog_ab_d1_js.2, by = c("Pair", "id"), all.x = TRUE)
+ab_d3_js <- merge(comm_ab_d3_js.2, biolog_ab_d3_js.2, by = c("Pair", "id"), all.x = TRUE)
+ab_d5_js <- merge(comm_ab_d5_js.2, biolog_ab_d5_js.2, by = c("Pair", "id"), all.x = TRUE)
+
+ac_d1_js <- merge(comm_ac_d1_js.2, biolog_ac_d1_js.2, by = c("Pair", "id"), all.x = TRUE)
+ac_d3_js <- merge(comm_ac_d3_js.2, biolog_ac_d3_js.2, by = c("Pair", "id"), all.x = TRUE)
+ac_d5_js <- merge(comm_ac_d5_js.2, biolog_ac_d5_js.2, by = c("Pair", "id"), all.x = TRUE)
+
+bc_d1_js <- merge(comm_bc_d1_js.2, biolog_bc_d1_js.2, by = c("Pair", "id"), all.x = TRUE)
+bc_d3_js <- merge(comm_bc_d3_js.2, biolog_bc_d3_js.2, by = c("Pair", "id"), all.x = TRUE)
+bc_d5_js <- merge(comm_bc_d5_js.2, biolog_bc_d5_js.2, by = c("Pair", "id"), all.x = TRUE)
+
+# add enzyme
+
+ab_d1_js <- merge(ab_d1_js, enzy_ab_d1_js.2, by = c("Pair", "id"), all.x = TRUE)
+ab_d3_js <- merge(ab_d3_js, enzy_ab_d3_js.2, by = c("Pair", "id"), all.x = TRUE)
+ab_d5_js <- merge(ab_d5_js, enzy_ab_d5_js.2, by = c("Pair", "id"), all.x = TRUE)
+
+ac_d1_js <- merge(ac_d1_js, enzy_ac_d1_js.2, by = c("Pair", "id"), all.x = TRUE)
+ac_d3_js <- merge(ac_d3_js, enzy_ac_d3_js.2, by = c("Pair", "id"), all.x = TRUE)
+ac_d5_js <- merge(ac_d5_js, enzy_ac_d5_js.2, by = c("Pair", "id"), all.x = TRUE)
+
+bc_d1_js <- merge(bc_d1_js, enzy_bc_d1_js.2, by = c("Pair", "id"), all.x = TRUE)
+bc_d3_js <- merge(bc_d3_js, enzy_bc_d3_js.2, by = c("Pair", "id"), all.x = TRUE)
+bc_d5_js <- merge(bc_d5_js, enzy_bc_d5_js.2, by = c("Pair", "id"), all.x = TRUE)
+
+```
+
+
+```{r}
+# Compute Spearman correlation between columns x and y
+
+#biolog
+spearman_ab_d1_bio <- cor.test(ab_d1_js$Comm_dist, ab_d1_js$Biolog_dist, method = "spearman", use="complete.obs")
+spearman_ab_d3_bio <- cor.test(ab_d3_js$Comm_dist, ab_d3_js$Biolog_dist, method = "spearman", use="complete.obs")
+spearman_ab_d5_bio <- cor.test(ab_d5_js$Comm_dist, ab_d5_js$Biolog_dist, method = "spearman", use="complete.obs")
+
+spearman_ac_d1_bio <- cor.test(ac_d1_js$Comm_dist, ac_d1_js$Biolog_dist, method = "spearman", use="complete.obs")
+spearman_ac_d3_bio <- cor.test(ac_d3_js$Comm_dist, ac_d3_js$Biolog_dist, method = "spearman", use="complete.obs")
+spearman_ac_d5_bio <- cor.test(ac_d5_js$Comm_dist, ac_d5_js$Biolog_dist, method = "spearman", use="complete.obs")
+
+spearman_bc_d1_bio <- cor.test(bc_d1_js$Comm_dist, bc_d1_js$Biolog_dist, method = "spearman", use="complete.obs")
+spearman_bc_d3_bio <- cor.test(bc_d3_js$Comm_dist, bc_d3_js$Biolog_dist, method = "spearman", use="complete.obs")
+spearman_bc_d5_bio <- cor.test(bc_d5_js$Comm_dist, bc_d5_js$Biolog_dist, method = "spearman", use="complete.obs")
+
+#enzyme
+spearman_ab_d1_enzy <- cor.test(ab_d1_js$Comm_dist, ab_d1_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_ab_d3_enzy <- cor.test(ab_d3_js$Comm_dist, ab_d3_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_ab_d5_enzy <- cor.test(ab_d5_js$Comm_dist, ab_d5_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_ac_d1_enzy <- cor.test(ac_d1_js$Comm_dist, ac_d1_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_ac_d3_enzy <- cor.test(ac_d3_js$Comm_dist, ac_d3_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_ac_d5_enzy <- cor.test(ac_d5_js$Comm_dist, ac_d5_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_bc_d1_enzy <- cor.test(bc_d1_js$Comm_dist, bc_d1_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_bc_d3_enzy <- cor.test(bc_d3_js$Comm_dist, bc_d3_js$Enzy_dist, method = "spearman", use="complete.obs")
+spearman_bc_d5_enzy <- cor.test(bc_d5_js$Comm_dist, bc_d5_js$Enzy_dist, method = "spearman", use="complete.obs")
+```
+
+
+```{r}
+library(ggplot2)
+ggplot(ab_d1_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ab_d1_js")
+ggplot(ab_d3_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ab_d3_js")
+ggplot(ab_d5_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ab_d5_js")
+ggplot(ac_d1_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ac_d1_js")
+ggplot(ac_d3_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ac_d3_js")
+ggplot(ac_d5_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ac_d5_js")
+ggplot(bc_d1_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("bc_d1_js")
+ggplot(bc_d3_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("bc_d3_js")
+ggplot(bc_d5_js, aes(x=Comm_dist, y=Biolog_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("bc_d5_js")
+
+ggplot(ab_d1_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ab_d1_js")
+ggplot(ab_d3_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ab_d3_js")
+ggplot(ab_d5_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ab_d5_js")
+ggplot(ac_d1_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ac_d1_js")
+ggplot(ac_d3_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ac_d3_js")
+ggplot(ac_d5_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("ac_d5_js")
+ggplot(bc_d1_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("bc_d1_js")
+ggplot(bc_d3_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("bc_d3_js")
+ggplot(bc_d5_js, aes(x=Comm_dist, y=Enzy_dist)) + geom_point() + coord_fixed() + geom_smooth(method='lm') + ggtitle("bc_d5_js")
+
+
+```
+
+```{r}
+ab_d1_js$set <- "ab_d1" 
+ab_d3_js$set <- "ab_d3" 
+ab_d5_js$set <- "ab_d5" 
+ac_d1_js$set <- "ac_d1" 
+ac_d3_js$set <- "ac_d3" 
+ac_d5_js$set <- "ac_d5" 
+bc_d1_js$set <- "bc_d1" 
+bc_d3_js$set <- "bc_d3" 
+bc_d5_js$set <- "bc_d5" 
+
+ab <- rbind(ab_d1_js, ab_d3_js, ab_d5_js)
+ac <- rbind(ac_d1_js, ac_d3_js, ac_d5_js)
+bc <- rbind(bc_d1_js, bc_d3_js, bc_d5_js)
+
+ab2 <- ab %>% group_by(Pair, Time.x, set) %>% summarise(across(c(Comm_dist, Biolog_dist, Enzy_dist), mean, na.rm = TRUE))
+  
+ab_d1_summary <- ab_d1_js %>%
+  group_by(Pair, Time.x) %>%
+  summarise(across(c(Comm_dist, Biolog_dist, Enzy_dist, Abiotic_dist), mean, na.rm = TRUE))
+
+```
+
+
+```{r}
+ggplot(ab, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + 
+  geom_point(alpha=.6) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.4)+ xlim(0.2,.8)+
+  scale_color_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) +
+  scale_fill_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) + 
+  theme_bw()+
+  ggtitle("ab_js")
+
+library(smplot2)
+library(ggplot2)
+ggplot(ab, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + 
+  geom_point(alpha=.6, size = 2) + coord_fixed() + 
+  geom_smooth(method='lm') + 
+  ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) +
+  scale_fill_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) + 
+  theme_bw()+
+  ggtitle("ab_js")
+
+ggplot(ac, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#6f2da8', "#af69ee", "#e4a0f7")) +
+  scale_fill_manual(values = c('#6f2da8', "#af69ee", "#e4a0f7")) + 
+  theme_bw()+
+  ggtitle("ac_js")
+
+ggplot(bc, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#4f7942', "#3bb143", "#98fb98")) +
+  scale_fill_manual(values = c('#4f7942', "#3bb143", "#98fb98")) + 
+  theme_bw()+
+  ggtitle("bc_js")
+```
+
+```{r}
+ggplot(ab2, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + 
+  geom_point(alpha=.6, size = 2) + coord_fixed() + 
+  geom_smooth(method='lm') + 
+  ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) +
+  scale_fill_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) + 
+  theme_bw()+
+  ggtitle("ab_js")
+
+ggplot(ac, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#6f2da8', "#af69ee", "#e4a0f7")) +
+  scale_fill_manual(values = c('#6f2da8', "#af69ee", "#e4a0f7")) + 
+  theme_bw()+
+  ggtitle("ac_js")
+
+ggplot(bc, aes(x=Comm_dist, y=Biolog_dist, group = set, shape = set, color = set, fill = set)) + geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#4f7942', "#3bb143", "#98fb98")) +
+  scale_fill_manual(values = c('#4f7942', "#3bb143", "#98fb98")) + 
+  theme_bw()+
+  ggtitle("bc_js")
+```
+
+```{r}
+
+ggplot(ab, aes(x=Comm_dist, y=Enzy_dist, group = set, shape = set, color = set, fill = set)) + 
+  geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) +
+  scale_fill_manual(values = c('#B1560F', "#FD6A06", "#fda50f")) + 
+  theme_bw()+
+  ggtitle("ab_js")
+
+ggplot(ac, aes(x=Comm_dist, y=Enzy_dist, group = set, shape = set, color = set, fill = set)) + geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#6f2da8', "#af69ee", "#e4a0f7")) +
+  scale_fill_manual(values = c('#6f2da8', "#af69ee", "#e4a0f7")) + 
+  theme_bw()+
+  ggtitle("ac_js")
+
+ggplot(bc, aes(x=Comm_dist, y=Enzy_dist, group = set, shape = set, color = set, fill = set)) + geom_point(alpha=.6, size = 2) + coord_fixed() + geom_smooth(method='lm') + ylim(0,.6)+ xlim(0.2,.8)+
+  sm_statCorr(corr_method = "spearman")+
+  scale_color_manual(values = c('#4f7942', "#3bb143", "#98fb98")) +
+  scale_fill_manual(values = c('#4f7942', "#3bb143", "#98fb98")) + 
+  theme_bw()+
+  ggtitle("bc_js")
+```
