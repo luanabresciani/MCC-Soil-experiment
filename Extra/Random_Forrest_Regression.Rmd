@@ -1,0 +1,293 @@
+---
+title: "Random_Forrest_Regression"
+output: html_document
+date: "2025-02-10"
+---
+
+library
+```{r}
+library(randomForest)
+library(ggplot2)
+```
+
+import file
+```{r}
+ab_d1 <- read.csv("./delta_var_comm_distance/abiotic_ab_d1.csv", header = TRUE)
+ac_d1 <- read.csv("./delta_var_comm_distance/abiotic_ac_d1.csv", header = TRUE)
+bc_d1 <- read.csv("./delta_var_comm_distance/abiotic_bc_d1.csv", header = TRUE)
+
+ab_d3 <- read.csv("./delta_var_comm_distance/abiotic_ab_d3.csv", header = TRUE)
+ac_d3 <- read.csv("./delta_var_comm_distance/abiotic_ac_d3.csv", header = TRUE)
+bc_d3 <- read.csv("./delta_var_comm_distance/abiotic_bc_d3.csv", header = TRUE)
+
+ab_d5 <- read.csv("./delta_var_comm_distance/abiotic_ab_d5.csv", header = TRUE)
+ac_d5 <- read.csv("./delta_var_comm_distance/abiotic_ac_d5.csv", header = TRUE)
+bc_d5 <- read.csv("./delta_var_comm_distance/abiotic_bc_d5.csv", header = TRUE)
+```
+
+```{r}
+d1 <- read.csv("./delta_var_comm_distance/abiotic_d1.csv", header = TRUE)
+d3 <- read.csv("./delta_var_comm_distance/abiotic_d3.csv", header = TRUE)
+d5 <- read.csv("./delta_var_comm_distance/abiotic_d5.csv", header = TRUE)
+ab <- read.csv("./delta_var_comm_distance/abiotic_ab.csv", header = TRUE)
+ac <- read.csv("./delta_var_comm_distance/abiotic_ac.csv", header = TRUE)
+bc <- read.csv("./delta_var_comm_distance/abiotic_bc.csv", header = TRUE)
+
+```
+
+
+Selected: "diff_Sand_percent", "diff_pH", "diff_Sulfur", "diff_Percent_Organic_Matter", "diff_Nitrate_nitrogen", "diff_Ammonium_nitrogen", "diff_Total_N_Percent" TOTAL= 7
+```{r}
+ab_d1.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab_d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac_d1.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac_d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc_d1.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc_d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ab_d3.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab_d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac_d3.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac_d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc_d3.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc_d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ab_d5.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab_d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac_d5.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac_d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc_d5.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc_d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+
+ab_d1.rf$importance
+ac_d1.rf$importance
+bc_d1.rf$importance
+
+ab_d3.rf$importance
+ac_d3.rf$importance
+bc_d3.rf$importance
+
+ab_d5.rf$importance
+ac_d5.rf$importance
+bc_d5.rf$importance
+
+ab_d1.rf$importanceSD
+
+summary(ab_d1.rf)
+plot(ab_d1.rf$importance)
+
+importance(ab_d1.rf)
+importance(ab_d3.rf)
+importance(ab_d5.rf)
+
+importance(ac_d1.rf)
+importance(ac_d3.rf)
+importance(ac_d5.rf)
+
+importance(bc_d1.rf)
+importance(bc_d3.rf)
+importance(bc_d5.rf)
+```
+
+```{r}
+d1.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+d3.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+d5.rf <- randomForest(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+d1.rf$importance
+d3.rf$importance
+d5.rf$importance
+
+importance(d1.rf)
+importance(d3.rf)
+importance(d5.rf)
+
+d1.rf$coefs
+
+
+```
+
+```{r}
+ImpData <- as.data.frame(importance(ab_d1.rf))
+ImpData$Var.Names <- row.names(ImpData)
+
+ggplot(ImpData, aes(x=Var.Names, y=`%IncMSE`)) +
+  geom_segment( aes(x=Var.Names, xend=Var.Names, y=0, yend=`%IncMSE`), color="skyblue") +
+  geom_point(aes(size = IncNodePurity), color="blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  theme(
+    legend.position="bottom",
+    panel.grid.major.y = element_blank(),
+    panel.border = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+randomForest::varImpPlot(ab_d1.rf, 
+                         #sort=FALSE, 
+                         main="Variable Importance Plot")
+
+
+
+```
+
+get pvalue of the random forest test
+https://cran.r-project.org/web/packages/rfPermute/rfPermute.pdf
+```{r}
+library(rfPermute)
+
+ab_d1.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab_d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac_d1.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac_d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc_d1.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc_d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ab_d3.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab_d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac_d3.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac_d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc_d3.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc_d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ab_d5.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab_d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac_d5.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac_d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc_d5.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc_d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+d1.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=d1, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+d3.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=d3, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+d5.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=d5, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ab.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ab, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+ac.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=ac, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+bc.perm <- rfPermute(distance ~ diff_Sand_percent + diff_pH + diff_Sulfur + diff_Percent_Organic_Matter + diff_Nitrate_nitrogen + diff_Ammonium_nitrogen + diff_Total_N_Percent, 
+                      data=bc, ntree=1000, keep.forest=FALSE, importance=TRUE)
+
+
+```
+
+
+```{r}
+#plot the tests
+ab_d1.perm$pval 
+ab_d3.perm$pval 
+ab_d5.perm$pval 
+ac_d1.perm$pval 
+ac_d3.perm$pval 
+ac_d5.perm$pval
+bc_d1.perm$pval 
+bc_d3.perm$pval 
+bc_d5.perm$pval
+
+importance(ab_d1.perm)
+importance(ab_d3.perm)
+importance(ab_d5.perm)
+
+importance(ac_d1.perm)
+importance(ac_d3.perm)
+importance(ac_d5.perm)
+
+importance(bc_d1.perm)
+importance(bc_d3.perm)
+importance(bc_d5.perm)
+
+
+summary(ab_d1.perm)
+
+ab_d1.perm[["rf"]]
+ab_d3.perm[["rf"]]
+ab_d5.perm[["rf"]]
+ac_d1.perm[["rf"]]
+ac_d3.perm[["rf"]]
+ac_d5.perm[["rf"]]
+bc_d1.perm[["rf"]]
+bc_d3.perm[["rf"]]
+bc_d5.perm[["rf"]]
+
+```
+
+
+```{r}
+d1.perm$pval 
+d3.perm$pval 
+d5.perm$pval
+
+importance(d1.perm)
+importance(d3.perm)
+importance(d5.perm)
+
+d1.perm[["rf"]]
+d3.perm[["rf"]]
+d5.perm[["rf"]]
+
+```
+
+
+```{r}
+ab.perm$pval 
+ac.perm$pval 
+bc.perm$pval
+
+importance(ab.perm)
+importance(ac.perm)
+importance(bc.perm)
+
+ab.perm[["rf"]]
+ac.perm[["rf"]]
+bc.perm[["rf"]]
+
+```
+
+
+Plot the importance - in red is the non significant
+```{r}
+#plot the importance - https://cran.r-project.org/web/packages/rfPermute/rfPermute.pdf
+plotImportance(ab.perm, main = "ab")
+plotImportance(ac.perm, main = "ac")
+plotImportance(bc.perm, main = "bc")
+
+plotImportance(d1.perm, main = "d1")
+plotImportance(d3.perm, main = "d3")
+plotImportance(d5.perm, main = "d5")
+
+plotImportance(ab_d1.perm, main = "ab_d1")
+plotImportance(ab_d3.perm, main = "ab_d3")
+plotImportance(ab_d5.perm, main = "ab_d5")
+plotImportance(ac_d1.perm, main = "ac_d1")
+plotImportance(ac_d3.perm, main = "ac_d3")
+plotImportance(ac_d5.perm, main = "ac_d5")
+plotImportance(bc_d1.perm, main = "bc_d1")
+plotImportance(bc_d3.perm, main = "bc_d3")
+plotImportance(bc_d5.perm, main = "bc_d5")
+
+```

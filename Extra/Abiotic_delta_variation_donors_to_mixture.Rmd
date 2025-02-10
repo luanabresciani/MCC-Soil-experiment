@@ -1,0 +1,1194 @@
+---
+title: "Abiotic_delta_variation_donors_to_mixture"
+output: html_document
+date: "2025-02-10"
+---
+
+```{r setup, include=FALSE}
+library(vegan)
+library(reshape2)
+# load stringr library
+library(stringr)
+```
+input ab
+```{r}
+ab_d1_t1 <- read.csv("./prepare_output/ab_d1_t1.csv", header = TRUE)
+ab_d1_t5 <- read.csv("./prepare_output/ab_d1_t5.csv", header = TRUE)
+ab_d1_t15 <- read.csv("./prepare_output/ab_d1_t15.csv", header = TRUE)
+ab_d1_t30 <- read.csv("./prepare_output/ab_d1_t30.csv", header = TRUE)
+
+ab_d3_t1 <- read.csv("./prepare_output/ab_d3_t1.csv", header = TRUE)
+ab_d3_t5 <- read.csv("./prepare_output/ab_d3_t5.csv", header = TRUE)
+ab_d3_t15 <- read.csv("./prepare_output/ab_d3_t15.csv", header = TRUE)
+ab_d3_t30 <- read.csv("./prepare_output/ab_d3_t30.csv", header = TRUE)
+
+ab_d5_t1 <- read.csv("./prepare_output/ab_d5_t1.csv", header = TRUE)
+ab_d5_t5 <- read.csv("./prepare_output/ab_d5_t5.csv", header = TRUE)
+ab_d5_t15 <- read.csv("./prepare_output/ab_d5_t15.csv", header = TRUE)
+ab_d5_t30 <- read.csv("./prepare_output/ab_d5_t30.csv", header = TRUE)
+
+
+#input ac
+
+ac_d1_t1 <- read.csv("./prepare_output/ac_d1_t1.csv", header = TRUE)
+ac_d1_t5 <- read.csv("./prepare_output/ac_d1_t5.csv", header = TRUE)
+ac_d1_t15 <- read.csv("./prepare_output/ac_d1_t15.csv", header = TRUE)
+ac_d1_t30 <- read.csv("./prepare_output/ac_d1_t30.csv", header = TRUE)
+
+ac_d3_t1 <- read.csv("./prepare_output/ac_d3_t1.csv", header = TRUE)
+ac_d3_t5 <- read.csv("./prepare_output/ac_d3_t5.csv", header = TRUE)
+ac_d3_t15 <- read.csv("./prepare_output/ac_d3_t15.csv", header = TRUE)
+ac_d3_t30 <- read.csv("./prepare_output/ac_d3_t30.csv", header = TRUE)
+
+ac_d5_t1 <- read.csv("./prepare_output/ac_d5_t1.csv", header = TRUE)
+ac_d5_t5 <- read.csv("./prepare_output/ac_d5_t5.csv", header = TRUE)
+ac_d5_t15 <- read.csv("./prepare_output/ac_d5_t15.csv", header = TRUE)
+ac_d5_t30 <- read.csv("./prepare_output/ac_d5_t30.csv", header = TRUE)
+
+
+#input bc
+
+bc_d1_t1 <- read.csv("./prepare_output/bc_d1_t1.csv", header = TRUE)
+bc_d1_t5 <- read.csv("./prepare_output/bc_d1_t5.csv", header = TRUE)
+bc_d1_t15 <- read.csv("./prepare_output/bc_d1_t15.csv", header = TRUE)
+bc_d1_t30 <- read.csv("./prepare_output/bc_d1_t30.csv", header = TRUE)
+
+bc_d3_t1 <- read.csv("./prepare_output/bc_d3_t1.csv", header = TRUE)
+bc_d3_t5 <- read.csv("./prepare_output/bc_d3_t5.csv", header = TRUE)
+bc_d3_t15 <- read.csv("./prepare_output/bc_d3_t15.csv", header = TRUE)
+bc_d3_t30 <- read.csv("./prepare_output/bc_d3_t30.csv", header = TRUE)
+
+bc_d5_t1 <- read.csv("./prepare_output/bc_d5_t1.csv", header = TRUE)
+bc_d5_t5 <- read.csv("./prepare_output/bc_d5_t5.csv", header = TRUE)
+bc_d5_t15 <- read.csv("./prepare_output/bc_d5_t15.csv", header = TRUE)
+bc_d5_t30 <- read.csv("./prepare_output/bc_d5_t30.csv", header = TRUE)
+
+```
+
+functions
+```{r}
+matrix_to_dataframe <- function(x){
+  # Get row and column names of the distance matrix
+  row_names <- rownames(as.matrix(x))
+  col_names <- colnames(as.matrix(x))
+
+  # Convert upper triangular portion of the matrix to a dataframe
+  upper_triangle <- upper.tri(as.matrix(x))
+  rows <- row_names[row(as.matrix(x))[upper_triangle]]
+  cols <- col_names[col(as.matrix(x))[upper_triangle]]
+  values <- as.matrix(x)[upper_triangle]
+
+  # Create dataframe
+  df3 <- data.frame(id1 = rows, id2 = cols, distance = values)
+  return(df3)  
+}
+
+delta_abiotic <- function(x){
+  
+# Initialize an empty dataframe to store pairwise differences
+y <- data.frame(id1 = numeric(0), id2 = numeric(0), 
+                diff_Sand_percent = numeric(0),
+                diff_Silt_percent = numeric(0),
+                diff_Clay_percent = numeric(0),
+                diff_Very_Coarse_Sand_percent_Retained = numeric(0),
+                diff_Coarse_Sand_percent_Retained	= numeric(0),
+                diff_Medium_Sand_percent_Retained	= numeric(0),
+                diff_Fine_Sand_percent_Retained	= numeric(0),
+                diff_Very_Fine_Sand_percent_Retained = numeric(0),
+                diff_Fines_percent_Retained	= numeric(0),
+                diff_pH	= numeric(0),
+                diff_Phosphorus	= numeric(0),
+                diff_Potassium	= numeric(0),
+                diff_Magnesium	= numeric(0),
+                diff_Calcium	= numeric(0),
+                diff_Acidity_index	= numeric(0),
+                diff_CEC	= numeric(0),
+                diff_K_percent_saturation_of_CEC= numeric(0),
+                diff_Mg_percent_saturation_of_CEC	= numeric(0),
+                diff_Ca_percent_saturation_of_CEC	= numeric(0),
+                diff_Zinc	= numeric(0),
+                diff_Copper	= numeric(0),
+                diff_Sulfur	= numeric(0),
+                diff_Percent_Organic_Matter	= numeric(0),
+                diff_Nitrate_nitrogen	= numeric(0),
+                diff_Soluble_Salts	= numeric(0),
+                diff_Ammonium_nitrogen	= numeric(0),
+                diff_Total_N_Percent	= numeric(0),
+                diff_Total_C_percent = numeric(0))
+    # Calculate pairwise differences
+for (i in 1:(nrow(x)-1)) {
+  for (j in (i+1):nrow(x)) {
+    id1 <- x$id[i]
+    id2 <- x$id[j]
+    diff_Sand_percent <- abs(x$Sand_percent[i] - x$Sand_percent[j])
+    diff_Silt_percent <- abs(x$Silt_percent[i] - x$Silt_percent[j])
+    diff_Clay_percent <- abs(x$Clay_percent[i] - x$Clay_percent[j])
+    diff_Very_Coarse_Sand_percent_Retained <- abs(x$Very_Coarse_Sand_percent_Retained[i] - x$Very_Coarse_Sand_percent_Retained[j])
+    diff_Coarse_Sand_percent_Retained	<- abs(x$Coarse_Sand_percent_Retained[i] - x$Coarse_Sand_percent_Retained[j])
+    diff_Medium_Sand_percent_Retained	<- abs(x$Medium_Sand_percent_Retained[i] - x$Medium_Sand_percent_Retained[j])
+    diff_Fine_Sand_percent_Retained	<- abs(x$Fine_Sand_percent_Retained[i] - x$Fine_Sand_percent_Retained[j])
+    diff_Very_Fine_Sand_percent_Retained <- abs(x$Very_Fine_Sand_percent_Retained[i] - x$Very_Fine_Sand_percent_Retained[j])
+    diff_Fines_percent_Retained	<- abs(x$Fines_percent_Retained[i] - x$Fines_percent_Retained[j])
+    diff_pH	<- abs(x$pH[i] - x$pH[j])
+    diff_Phosphorus	<- abs(x$Phosphorus[i] - x$Phosphorus[j])
+    diff_Potassium	<- abs(x$Potassium[i] - x$Potassium[j])
+    diff_Magnesium	<- abs(x$Magnesium[i] - x$Magnesium[j])
+    diff_Calcium	<- abs(x$Calcium[i] - x$Calcium[j])
+    diff_Acidity_index	<- abs(x$Acidity_index[i] - x$Acidity_index[j])
+    diff_CEC	<- abs(x$CEC[i] - x$CEC[j])
+    diff_K_percent_saturation_of_CEC <- abs(x$K_percent_saturation_of_CEC[i] - x$K_percent_saturation_of_CEC[j])
+    diff_Mg_percent_saturation_of_CEC	<- abs(x$Mg_percent_saturation_of_CEC[i] - x$Mg_percent_saturation_of_CEC[j])
+    diff_Ca_percent_saturation_of_CEC	<- abs(x$Ca_percent_saturation_of_CEC[i] - x$Ca_percent_saturation_of_CEC[j])
+    diff_Zinc	<- abs(x$Zinc[i] - x$Zinc[j])
+    diff_Copper	<- abs(x$Copper[i] - x$Copper[j])
+    diff_Sulfur	<- abs(x$Sulfur[i] - x$Sulfur[j])
+    diff_Percent_Organic_Matter	<- abs(x$Percent_Organic_Matter[i] - x$Percent_Organic_Matter[j])
+    #diff_Percent_Organic_Matter	<- x$Percent_Organic_Matter[i] - x$Percent_Organic_Matter[j]
+    diff_Nitrate_nitrogen	<- abs(x$Nitrate_nitrogen[i] - x$Nitrate_nitrogen[j])
+    diff_Soluble_Salts	<- abs(x$Soluble_Salts[i] - x$Soluble_Salts[j])
+    diff_Ammonium_nitrogen	<- abs(x$Ammonium_nitrogen[i] - x$Ammonium_nitrogen[j])
+    diff_Total_N_Percent	<- abs(x$Total_N_Percent[i] - x$Total_N_Percent[j])
+    diff_Total_C_percent <- abs(x$Total_C_percent[i] - x$Total_C_percent[j])
+  
+    y <- rbind(y, data.frame(id1 = id1, id2 = id2, 
+                diff_Sand_percent = diff_Sand_percent,
+                diff_Silt_percent = diff_Silt_percent,
+                diff_Clay_percent = diff_Clay_percent,
+                diff_Very_Coarse_Sand_percent_Retained  = diff_Very_Coarse_Sand_percent_Retained,
+                diff_Coarse_Sand_percent_Retained = diff_Coarse_Sand_percent_Retained,
+                diff_Medium_Sand_percent_Retained = diff_Medium_Sand_percent_Retained,
+                diff_Fine_Sand_percent_Retained = diff_Fine_Sand_percent_Retained,
+                diff_Very_Fine_Sand_percent_Retained = diff_Very_Fine_Sand_percent_Retained,
+                diff_Fines_percent_Retained = diff_Fines_percent_Retained,
+                diff_pH = diff_pH,
+                diff_Phosphorus = diff_Phosphorus,
+                diff_Potassium = diff_Potassium,
+                diff_Magnesium = diff_Magnesium,
+                diff_Calcium = diff_Calcium,
+                diff_Acidity_index = diff_Acidity_index,
+                diff_CEC = diff_CEC,
+                diff_K_percent_saturation_of_CEC = diff_K_percent_saturation_of_CEC,
+                diff_Mg_percent_saturation_of_CEC = diff_Mg_percent_saturation_of_CEC,
+                diff_Ca_percent_saturation_of_CEC = diff_Ca_percent_saturation_of_CEC,
+                diff_Zinc = diff_Zinc,
+                diff_Copper = diff_Copper,
+                diff_Sulfur = diff_Sulfur,
+                diff_Percent_Organic_Matter	= diff_Percent_Organic_Matter,
+                diff_Nitrate_nitrogen	= diff_Nitrate_nitrogen,
+                diff_Soluble_Salts	= diff_Soluble_Salts,
+                diff_Ammonium_nitrogen =	diff_Ammonium_nitrogen,
+                diff_Total_N_Percent	= diff_Total_N_Percent,
+                diff_Total_C_percent = diff_Total_C_percent))
+  }
+}
+
+return(y)
+}
+
+
+fmerged_filter_ab <- function(x){
+
+# Split name column into firstname and last name
+x[c('id1', 'id2')] <- str_split_fixed(x$id3, '/', 2)
+
+x[c('id11', 'id12','id13', 'id14')] <- str_split_fixed(x$id1, '_', 4)
+x[c('id21', 'id22','id23', 'id24')] <- str_split_fixed(x$id2, '_', 4)
+
+# Remove rows where id2 is equal to "x" and id3 is equal to "y"
+merged_filtered <- x[!(x$id13 == "A" & x$id23 == "B"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "B" & merged_filtered$id23 == "A"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "A" & merged_filtered$id23 == "A"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "B" & merged_filtered$id23 == "B"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "AXB" & merged_filtered$id23 == "AXB"), ]
+
+merged_filtered$pair <- paste(merged_filtered$id13, "-", merged_filtered$id23, sep = "")
+merged_filtered2 <- merged_filtered[-c(31:40)] #clean columns
+
+return (merged_filtered2)
+}
+fmerged_filter_ac <- function(x){
+
+# Split name column into firstname and last name
+x[c('id1', 'id2')] <- str_split_fixed(x$id3, '/', 2)
+
+x[c('id11', 'id12','id13', 'id14')] <- str_split_fixed(x$id1, '_', 4)
+x[c('id21', 'id22','id23', 'id24')] <- str_split_fixed(x$id2, '_', 4)
+
+# Remove rows where id2 is equal to "x" and id3 is equal to "y"
+merged_filtered <- x[!(x$id13 == "A" & x$id23 == "C"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "C" & merged_filtered$id23 == "A"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "A" & merged_filtered$id23 == "A"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "C" & merged_filtered$id23 == "C"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "AXC" & merged_filtered$id23 == "AXC"), ]
+
+merged_filtered$pair <- paste(merged_filtered$id13, "-", merged_filtered$id23, sep = "")
+merged_filtered2 <- merged_filtered[-c(31:40)] #clean columns
+
+return (merged_filtered2)
+}
+fmerged_filter_bc <- function(x){
+
+# Split name column into firstname and last name
+x[c('id1', 'id2')] <- str_split_fixed(x$id3, '/', 2)
+
+x[c('id11', 'id12','id13', 'id14')] <- str_split_fixed(x$id1, '_', 4)
+x[c('id21', 'id22','id23', 'id24')] <- str_split_fixed(x$id2, '_', 4)
+
+# Remove rows where id2 is equal to "x" and id3 is equal to "y"
+merged_filtered <- x[!(x$id13 == "B" & x$id23 == "C"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "C" & merged_filtered$id23 == "B"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "B" & merged_filtered$id23 == "B"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "C" & merged_filtered$id23 == "C"), ]
+merged_filtered <- merged_filtered[!(merged_filtered$id13 == "BXC" & merged_filtered$id23 == "BXC"), ]
+
+merged_filtered$pair <- paste(merged_filtered$id13, "-", merged_filtered$id23, sep = "")
+merged_filtered2 <- merged_filtered[-c(31:40)] #clean columns
+
+return (merged_filtered2)
+}
+
+```
+
+#abundance data
+ab
+```{r}
+#abundance data
+#ab_d1_t1
+ab_d1_t1$id <- paste(ab_d1_t1$id, "_", ab_d1_t1$soil, sep = "")
+rownames(ab_d1_t1) <- ab_d1_t1[,1]
+ab_d1_t1_abun <- ab_d1_t1[, c(34:ncol(ab_d1_t1))]
+ab_d1_t1_abund.dist = vegdist(ab_d1_t1_abun, method = "bray")
+ab_d1_t1_comm <- matrix_to_dataframe(ab_d1_t1_abund.dist)
+
+#ab_d1_t5
+ab_d1_t5$id <- paste(ab_d1_t5$id, "_", ab_d1_t5$soil, sep = "")
+rownames(ab_d1_t5) <- ab_d1_t5[,1]
+ab_d1_t5_abun <- ab_d1_t5[, c(34:ncol(ab_d1_t5))]
+ab_d1_t5_abund.dist = vegdist(ab_d1_t5_abun, method = "bray")
+ab_d1_t5_comm <- matrix_to_dataframe(ab_d1_t5_abund.dist)
+
+#ab_d1_t15
+ab_d1_t15$id <- paste(ab_d1_t15$id, "_", ab_d1_t15$soil, sep = "")
+rownames(ab_d1_t15) <- ab_d1_t15[,1]
+ab_d1_t15_abun <- ab_d1_t15[, c(34:ncol(ab_d1_t15))]
+ab_d1_t15_abund.dist = vegdist(ab_d1_t15_abun, method = "bray")
+ab_d1_t15_comm <- matrix_to_dataframe(ab_d1_t15_abund.dist)
+
+#ab_d1_t30
+ab_d1_t30$id <- paste(ab_d1_t30$id, "_", ab_d1_t30$soil, sep = "")
+rownames(ab_d1_t30) <- ab_d1_t30[,1]
+ab_d1_t30_abun <- ab_d1_t30[, c(34:ncol(ab_d1_t30))]
+ab_d1_t30_abund.dist = vegdist(ab_d1_t30_abun, method = "bray")
+ab_d1_t30_comm <- matrix_to_dataframe(ab_d1_t30_abund.dist)
+
+#abundance data
+#ab_d3_t1
+ab_d3_t1$id <- paste(ab_d3_t1$id, "_", ab_d3_t1$soil, sep = "")
+rownames(ab_d3_t1) <- ab_d3_t1[,1]
+ab_d3_t1_abun <- ab_d3_t1[, c(34:ncol(ab_d3_t1))]
+ab_d3_t1_abund.dist = vegdist(ab_d3_t1_abun, method = "bray")
+ab_d3_t1_comm <- matrix_to_dataframe(ab_d3_t1_abund.dist)
+
+#ab_d3_t5
+ab_d3_t5$id <- paste(ab_d3_t5$id, "_", ab_d3_t5$soil, sep = "")
+rownames(ab_d3_t5) <- ab_d3_t5[,1]
+ab_d3_t5_abun <- ab_d3_t5[, c(34:ncol(ab_d3_t5))]
+ab_d3_t5_abund.dist = vegdist(ab_d3_t5_abun, method = "bray")
+ab_d3_t5_comm <- matrix_to_dataframe(ab_d3_t5_abund.dist)
+
+#ab_d3_t15
+ab_d3_t15$id <- paste(ab_d3_t15$id, "_", ab_d3_t15$soil, sep = "")
+rownames(ab_d3_t15) <- ab_d3_t15[,1]
+ab_d3_t15_abun <- ab_d3_t15[, c(34:ncol(ab_d3_t15))]
+ab_d3_t15_abund.dist = vegdist(ab_d3_t15_abun, method = "bray")
+ab_d3_t15_comm <- matrix_to_dataframe(ab_d3_t15_abund.dist)
+
+#ab_d3_t30
+ab_d3_t30$id <- paste(ab_d3_t30$id, "_", ab_d3_t30$soil, sep = "")
+rownames(ab_d3_t30) <- ab_d3_t30[,1]
+ab_d3_t30_abun <- ab_d3_t30[, c(34:ncol(ab_d3_t30))]
+ab_d3_t30_abund.dist = vegdist(ab_d3_t30_abun, method = "bray")
+ab_d3_t30_comm <- matrix_to_dataframe(ab_d3_t30_abund.dist)
+
+#abundance data
+#ab_d5_t1
+ab_d5_t1$id <- paste(ab_d5_t1$id, "_", ab_d5_t1$soil, sep = "")
+rownames(ab_d5_t1) <- ab_d5_t1[,1]
+ab_d5_t1_abun <- ab_d5_t1[, c(34:ncol(ab_d5_t1))]
+ab_d5_t1_abund.dist = vegdist(ab_d5_t1_abun, method = "bray")
+ab_d5_t1_comm <- matrix_to_dataframe(ab_d5_t1_abund.dist)
+
+#ab_d5_t5
+ab_d5_t5$id <- paste(ab_d5_t5$id, "_", ab_d5_t5$soil, sep = "")
+rownames(ab_d5_t5) <- ab_d5_t5[,1]
+ab_d5_t5_abun <- ab_d5_t5[, c(34:ncol(ab_d5_t5))]
+ab_d5_t5_abund.dist = vegdist(ab_d5_t5_abun, method = "bray")
+ab_d5_t5_comm <- matrix_to_dataframe(ab_d5_t5_abund.dist)
+
+#ab_d5_t15
+ab_d5_t15$id <- paste(ab_d5_t15$id, "_", ab_d5_t15$soil, sep = "")
+rownames(ab_d5_t15) <- ab_d5_t15[,1]
+ab_d5_t15_abun <- ab_d5_t15[, c(34:ncol(ab_d5_t15))]
+ab_d5_t15_abund.dist = vegdist(ab_d5_t15_abun, method = "bray")
+ab_d5_t15_comm <- matrix_to_dataframe(ab_d5_t15_abund.dist)
+
+#ab_d5_t30
+ab_d5_t30$id <- paste(ab_d5_t30$id, "_", ab_d5_t30$soil, sep = "")
+rownames(ab_d5_t30) <- ab_d5_t30[,1]
+ab_d5_t30_abun <- ab_d5_t30[, c(34:ncol(ab_d5_t30))]
+ab_d5_t30_abund.dist = vegdist(ab_d5_t30_abun, method = "bray")
+ab_d5_t30_comm <- matrix_to_dataframe(ab_d5_t30_abund.dist)
+
+
+```
+ac
+```{r}
+#abundance data
+#ac_d1_t1
+ac_d1_t1$id <- paste(ac_d1_t1$id, "_", ac_d1_t1$soil, sep = "")
+rownames(ac_d1_t1) <- ac_d1_t1[,1]
+ac_d1_t1_abun <- ac_d1_t1[, c(35:ncol(ac_d1_t1))]
+ac_d1_t1_abund.dist = vegdist(ac_d1_t1_abun, method = "bray")
+ac_d1_t1_comm <- matrix_to_dataframe(ac_d1_t1_abund.dist)
+
+#ac_d1_t5
+ac_d1_t5$id <- paste(ac_d1_t5$id, "_", ac_d1_t5$soil, sep = "")
+rownames(ac_d1_t5) <- ac_d1_t5[,1]
+ac_d1_t5_abun <- ac_d1_t5[, c(35:ncol(ac_d1_t5))]
+ac_d1_t5_abund.dist = vegdist(ac_d1_t5_abun, method = "bray")
+ac_d1_t5_comm <- matrix_to_dataframe(ac_d1_t5_abund.dist)
+
+#ac_d1_t15
+ac_d1_t15$id <- paste(ac_d1_t15$id, "_", ac_d1_t15$soil, sep = "")
+rownames(ac_d1_t15) <- ac_d1_t15[,1]
+ac_d1_t15_abun <- ac_d1_t15[, c(35:ncol(ac_d1_t15))]
+ac_d1_t15_abund.dist = vegdist(ac_d1_t15_abun, method = "bray")
+ac_d1_t15_comm <- matrix_to_dataframe(ac_d1_t15_abund.dist)
+
+#ac_d1_t30
+ac_d1_t30$id <- paste(ac_d1_t30$id, "_", ac_d1_t30$soil, sep = "")
+rownames(ac_d1_t30) <- ac_d1_t30[,1]
+ac_d1_t30_abun <- ac_d1_t30[, c(35:ncol(ac_d1_t30))]
+ac_d1_t30_abund.dist = vegdist(ac_d1_t30_abun, method = "bray")
+ac_d1_t30_comm <- matrix_to_dataframe(ac_d1_t30_abund.dist)
+
+#abundance data
+#ac_d3_t1
+ac_d3_t1$id <- paste(ac_d3_t1$id, "_", ac_d3_t1$soil, sep = "")
+rownames(ac_d3_t1) <- ac_d3_t1[,1]
+ac_d3_t1_abun <- ac_d3_t1[, c(35:ncol(ac_d3_t1))]
+ac_d3_t1_abund.dist = vegdist(ac_d3_t1_abun, method = "bray")
+ac_d3_t1_comm <- matrix_to_dataframe(ac_d3_t1_abund.dist)
+
+#ac_d3_t5
+ac_d3_t5$id <- paste(ac_d3_t5$id, "_", ac_d3_t5$soil, sep = "")
+rownames(ac_d3_t5) <- ac_d3_t5[,1]
+ac_d3_t5_abun <- ac_d3_t5[, c(35:ncol(ac_d3_t5))]
+ac_d3_t5_abund.dist = vegdist(ac_d3_t5_abun, method = "bray")
+ac_d3_t5_comm <- matrix_to_dataframe(ac_d3_t5_abund.dist)
+
+#ac_d3_t15
+ac_d3_t15$id <- paste(ac_d3_t15$id, "_", ac_d3_t15$soil, sep = "")
+rownames(ac_d3_t15) <- ac_d3_t15[,1]
+ac_d3_t15_abun <- ac_d3_t15[, c(35:ncol(ac_d3_t15))]
+ac_d3_t15_abund.dist = vegdist(ac_d3_t15_abun, method = "bray")
+ac_d3_t15_comm <- matrix_to_dataframe(ac_d3_t15_abund.dist)
+
+#ac_d3_t30
+ac_d3_t30$id <- paste(ac_d3_t30$id, "_", ac_d3_t30$soil, sep = "")
+rownames(ac_d3_t30) <- ac_d3_t30[,1]
+ac_d3_t30_abun <- ac_d3_t30[, c(35:ncol(ac_d3_t30))]
+ac_d3_t30_abund.dist = vegdist(ac_d3_t30_abun, method = "bray")
+ac_d3_t30_comm <- matrix_to_dataframe(ac_d3_t30_abund.dist)
+
+#abundance data
+#ac_d5_t1
+ac_d5_t1$id <- paste(ac_d5_t1$id, "_", ac_d5_t1$soil, sep = "")
+rownames(ac_d5_t1) <- ac_d5_t1[,1]
+ac_d5_t1_abun <- ac_d5_t1[, c(35:ncol(ac_d5_t1))]
+ac_d5_t1_abund.dist = vegdist(ac_d5_t1_abun, method = "bray")
+ac_d5_t1_comm <- matrix_to_dataframe(ac_d5_t1_abund.dist)
+
+#ac_d5_t5
+ac_d5_t5$id <- paste(ac_d5_t5$id, "_", ac_d5_t5$soil, sep = "")
+rownames(ac_d5_t5) <- ac_d5_t5[,1]
+ac_d5_t5_abun <- ac_d5_t5[, c(35:ncol(ac_d5_t5))]
+ac_d5_t5_abund.dist = vegdist(ac_d5_t5_abun, method = "bray")
+ac_d5_t5_comm <- matrix_to_dataframe(ac_d5_t5_abund.dist)
+
+#ac_d5_t15
+ac_d5_t15$id <- paste(ac_d5_t15$id, "_", ac_d5_t15$soil, sep = "")
+rownames(ac_d5_t15) <- ac_d5_t15[,1]
+ac_d5_t15_abun <- ac_d5_t15[, c(35:ncol(ac_d5_t15))]
+ac_d5_t15_abund.dist = vegdist(ac_d5_t15_abun, method = "bray")
+ac_d5_t15_comm <- matrix_to_dataframe(ac_d5_t15_abund.dist)
+
+#ac_d5_t30
+ac_d5_t30$id <- paste(ac_d5_t30$id, "_", ac_d5_t30$soil, sep = "")
+rownames(ac_d5_t30) <- ac_d5_t30[,1]
+ac_d5_t30_abun <- ac_d5_t30[, c(35:ncol(ac_d5_t30))]
+ac_d5_t30_abund.dist = vegdist(ac_d5_t30_abun, method = "bray")
+ac_d5_t30_comm <- matrix_to_dataframe(ac_d5_t30_abund.dist)
+
+
+```
+bc
+```{r}
+#abundance data
+#bc_d1_t1
+bc_d1_t1$id <- paste(bc_d1_t1$id, "_", bc_d1_t1$soil, sep = "")
+rownames(bc_d1_t1) <- bc_d1_t1[,1]
+bc_d1_t1_abun <- bc_d1_t1[, c(35:ncol(bc_d1_t1))]
+bc_d1_t1_abund.dist = vegdist(bc_d1_t1_abun, method = "bray")
+bc_d1_t1_comm <- matrix_to_dataframe(bc_d1_t1_abund.dist)
+
+#bc_d1_t5
+bc_d1_t5$id <- paste(bc_d1_t5$id, "_", bc_d1_t5$soil, sep = "")
+rownames(bc_d1_t5) <- bc_d1_t5[,1]
+bc_d1_t5_abun <- bc_d1_t5[, c(35:ncol(bc_d1_t5))]
+bc_d1_t5_abund.dist = vegdist(bc_d1_t5_abun, method = "bray")
+bc_d1_t5_comm <- matrix_to_dataframe(bc_d1_t5_abund.dist)
+
+#bc_d1_t15
+bc_d1_t15$id <- paste(bc_d1_t15$id, "_", bc_d1_t15$soil, sep = "")
+rownames(bc_d1_t15) <- bc_d1_t15[,1]
+bc_d1_t15_abun <- bc_d1_t15[, c(35:ncol(bc_d1_t15))]
+bc_d1_t15_abund.dist = vegdist(bc_d1_t15_abun, method = "bray")
+bc_d1_t15_comm <- matrix_to_dataframe(bc_d1_t15_abund.dist)
+
+#bc_d1_t30
+bc_d1_t30$id <- paste(bc_d1_t30$id, "_", bc_d1_t30$soil, sep = "")
+rownames(bc_d1_t30) <- bc_d1_t30[,1]
+bc_d1_t30_abun <- bc_d1_t30[, c(35:ncol(bc_d1_t30))]
+bc_d1_t30_abund.dist = vegdist(bc_d1_t30_abun, method = "bray")
+bc_d1_t30_comm <- matrix_to_dataframe(bc_d1_t30_abund.dist)
+
+#abundance data
+#bc_d3_t1
+bc_d3_t1$id <- paste(bc_d3_t1$id, "_", bc_d3_t1$soil, sep = "")
+rownames(bc_d3_t1) <- bc_d3_t1[,1]
+bc_d3_t1_abun <- bc_d3_t1[, c(35:ncol(bc_d3_t1))]
+bc_d3_t1_abund.dist = vegdist(bc_d3_t1_abun, method = "bray")
+bc_d3_t1_comm <- matrix_to_dataframe(bc_d3_t1_abund.dist)
+
+#bc_d3_t5
+bc_d3_t5$id <- paste(bc_d3_t5$id, "_", bc_d3_t5$soil, sep = "")
+rownames(bc_d3_t5) <- bc_d3_t5[,1]
+bc_d3_t5_abun <- bc_d3_t5[, c(35:ncol(bc_d3_t5))]
+bc_d3_t5_abund.dist = vegdist(bc_d3_t5_abun, method = "bray")
+bc_d3_t5_comm <- matrix_to_dataframe(bc_d3_t5_abund.dist)
+
+#bc_d3_t15
+bc_d3_t15$id <- paste(bc_d3_t15$id, "_", bc_d3_t15$soil, sep = "")
+rownames(bc_d3_t15) <- bc_d3_t15[,1]
+bc_d3_t15_abun <- bc_d3_t15[, c(35:ncol(bc_d3_t15))]
+bc_d3_t15_abund.dist = vegdist(bc_d3_t15_abun, method = "bray")
+bc_d3_t15_comm <- matrix_to_dataframe(bc_d3_t15_abund.dist)
+
+#bc_d3_t30
+bc_d3_t30$id <- paste(bc_d3_t30$id, "_", bc_d3_t30$soil, sep = "")
+rownames(bc_d3_t30) <- bc_d3_t30[,1]
+bc_d3_t30_abun <- bc_d3_t30[, c(35:ncol(bc_d3_t30))]
+bc_d3_t30_abund.dist = vegdist(bc_d3_t30_abun, method = "bray")
+bc_d3_t30_comm <- matrix_to_dataframe(bc_d3_t30_abund.dist)
+
+#abundance data
+#bc_d5_t1
+bc_d5_t1$id <- paste(bc_d5_t1$id, "_", bc_d5_t1$soil, sep = "")
+rownames(bc_d5_t1) <- bc_d5_t1[,1]
+bc_d5_t1_abun <- bc_d5_t1[, c(35:ncol(bc_d5_t1))]
+bc_d5_t1_abund.dist = vegdist(bc_d5_t1_abun, method = "bray")
+bc_d5_t1_comm <- matrix_to_dataframe(bc_d5_t1_abund.dist)
+
+#bc_d5_t5
+bc_d5_t5$id <- paste(bc_d5_t5$id, "_", bc_d5_t5$soil, sep = "")
+rownames(bc_d5_t5) <- bc_d5_t5[,1]
+bc_d5_t5_abun <- bc_d5_t5[, c(35:ncol(bc_d5_t5))]
+bc_d5_t5_abund.dist = vegdist(bc_d5_t5_abun, method = "bray")
+bc_d5_t5_comm <- matrix_to_dataframe(bc_d5_t5_abund.dist)
+
+#bc_d5_t15
+bc_d5_t15$id <- paste(bc_d5_t15$id, "_", bc_d5_t15$soil, sep = "")
+rownames(bc_d5_t15) <- bc_d5_t15[,1]
+bc_d5_t15_abun <- bc_d5_t15[, c(35:ncol(bc_d5_t15))]
+bc_d5_t15_abund.dist = vegdist(bc_d5_t15_abun, method = "bray")
+bc_d5_t15_comm <- matrix_to_dataframe(bc_d5_t15_abund.dist)
+
+#bc_d5_t30
+bc_d5_t30$id <- paste(bc_d5_t30$id, "_", bc_d5_t30$soil, sep = "")
+rownames(bc_d5_t30) <- bc_d5_t30[,1]
+bc_d5_t30_abun <- bc_d5_t30[, c(35:ncol(bc_d5_t30))]
+bc_d5_t30_abund.dist = vegdist(bc_d5_t30_abun, method = "bray")
+bc_d5_t30_comm <- matrix_to_dataframe(bc_d5_t30_abund.dist)
+
+
+```
+#chem
+ab
+```{r}
+#ab_d1
+ab_d1_t1_abiotic <- ab_d1_t1[, c(1:33)]
+ab_d1_t1_abiotic_delta <- delta_abiotic(ab_d1_t1_abiotic)
+#ab_d1_t1_abiotic_ij <- delta_abiotic_ij(ab_d1_t1_abiotic)
+#ab_d1_t1_abiotic_ji <- delta_abiotic_ji(ab_d1_t1_abiotic)
+
+ab_d1_t5_abiotic <- ab_d1_t5[, c(1:33)]
+ab_d1_t5_abiotic_delta <- delta_abiotic(ab_d1_t5_abiotic)
+
+ab_d1_t15_abiotic <- ab_d1_t15[, c(1:33)]
+ab_d1_t15_abiotic_delta <- delta_abiotic(ab_d1_t15_abiotic)
+
+ab_d1_t30_abiotic <- ab_d1_t30[, c(1:33)]
+ab_d1_t30_abiotic_delta <- delta_abiotic(ab_d1_t30_abiotic)
+
+#ab_d3
+ab_d3_t1_abiotic <- ab_d3_t1[, c(1:33)]
+ab_d3_t1_abiotic_delta <- delta_abiotic(ab_d3_t1_abiotic)
+
+ab_d3_t5_abiotic <- ab_d3_t5[, c(1:33)]
+ab_d3_t5_abiotic_delta <- delta_abiotic(ab_d3_t5_abiotic)
+
+ab_d3_t15_abiotic <- ab_d3_t15[, c(1:33)]
+ab_d3_t15_abiotic_delta <- delta_abiotic(ab_d3_t15_abiotic)
+
+ab_d3_t30_abiotic <- ab_d3_t30[, c(1:33)]
+ab_d3_t30_abiotic_delta <- delta_abiotic(ab_d3_t30_abiotic)
+
+#ab_d5
+ab_d5_t1_abiotic <- ab_d5_t1[, c(1:33)]
+ab_d5_t1_abiotic_delta <- delta_abiotic(ab_d5_t1_abiotic)
+
+ab_d5_t5_abiotic <- ab_d5_t5[, c(1:33)]
+ab_d5_t5_abiotic_delta <- delta_abiotic(ab_d5_t5_abiotic)
+
+ab_d5_t15_abiotic <- ab_d5_t15[, c(1:33)]
+ab_d5_t15_abiotic_delta <- delta_abiotic(ab_d5_t15_abiotic)
+
+ab_d5_t30_abiotic <- ab_d5_t30[, c(1:33)]
+ab_d5_t30_abiotic_delta <- delta_abiotic(ab_d5_t30_abiotic)
+```
+
+ac
+```{r}
+#ac_d1
+ac_d1_t1_abiotic <- ac_d1_t1[, c(1:8,10:34)]
+ac_d1_t1_abiotic_delta <- delta_abiotic(ac_d1_t1_abiotic)
+
+ac_d1_t5_abiotic <- ac_d1_t5[, c(1:8,10:34)]
+ac_d1_t5_abiotic_delta <- delta_abiotic(ac_d1_t5_abiotic)
+
+ac_d1_t15_abiotic <- ac_d1_t15[, c(1:8,10:34)]
+ac_d1_t15_abiotic_delta <- delta_abiotic(ac_d1_t15_abiotic)
+
+ac_d1_t30_abiotic <- ac_d1_t30[, c(1:8,10:34)]
+ac_d1_t30_abiotic_delta <- delta_abiotic(ac_d1_t30_abiotic)
+
+#ac_d3
+ac_d3_t1_abiotic <- ac_d3_t1[, c(1:8,10:34)]
+ac_d3_t1_abiotic_delta <- delta_abiotic(ac_d3_t1_abiotic)
+
+ac_d3_t5_abiotic <- ac_d3_t5[, c(1:8,10:34)]
+ac_d3_t5_abiotic_delta <- delta_abiotic(ac_d3_t5_abiotic)
+
+ac_d3_t15_abiotic <- ac_d3_t15[, c(1:8,10:34)]
+ac_d3_t15_abiotic_delta <- delta_abiotic(ac_d3_t15_abiotic)
+
+ac_d3_t30_abiotic <- ac_d3_t30[, c(1:8,10:34)]
+ac_d3_t30_abiotic_delta <- delta_abiotic(ac_d3_t30_abiotic)
+
+#ac_d5
+ac_d5_t1_abiotic <- ac_d5_t1[, c(1:8,10:34)]
+ac_d5_t1_abiotic_delta <- delta_abiotic(ac_d5_t1_abiotic)
+
+ac_d5_t5_abiotic <- ac_d5_t5[, c(1:8,10:34)]
+ac_d5_t5_abiotic_delta <- delta_abiotic(ac_d5_t5_abiotic)
+
+ac_d5_t15_abiotic <- ac_d5_t15[, c(1:8,10:34)]
+ac_d5_t15_abiotic_delta <- delta_abiotic(ac_d5_t15_abiotic)
+
+ac_d5_t30_abiotic <- ac_d5_t30[, c(1:8,10:34)]
+ac_d5_t30_abiotic_delta <- delta_abiotic(ac_d5_t30_abiotic)
+```
+bc
+```{r}
+#bc_d1
+bc_d1_t1_abiotic <- bc_d1_t1[, c(1:8,10:34)]
+bc_d1_t1_abiotic_delta <- delta_abiotic(bc_d1_t1_abiotic)
+
+bc_d1_t5_abiotic <- bc_d1_t5[, c(1:8,10:34)]
+bc_d1_t5_abiotic_delta <- delta_abiotic(bc_d1_t5_abiotic)
+
+bc_d1_t15_abiotic <- bc_d1_t15[, c(1:8,10:34)]
+bc_d1_t15_abiotic_delta <- delta_abiotic(bc_d1_t15_abiotic)
+
+bc_d1_t30_abiotic <- bc_d1_t30[, c(1:8,10:34)]
+bc_d1_t30_abiotic_delta <- delta_abiotic(bc_d1_t30_abiotic)
+
+#bc_d3
+bc_d3_t1_abiotic <- bc_d3_t1[, c(1:8,10:34)]
+bc_d3_t1_abiotic_delta <- delta_abiotic(bc_d3_t1_abiotic)
+
+bc_d3_t5_abiotic <- bc_d3_t5[, c(1:8,10:34)]
+bc_d3_t5_abiotic_delta <- delta_abiotic(bc_d3_t5_abiotic)
+
+bc_d3_t15_abiotic <- bc_d3_t15[, c(1:8,10:34)]
+bc_d3_t15_abiotic_delta <- delta_abiotic(bc_d3_t15_abiotic)
+
+bc_d3_t30_abiotic <- bc_d3_t30[, c(1:8,10:34)]
+bc_d3_t30_abiotic_delta <- delta_abiotic(bc_d3_t30_abiotic)
+
+#bc_d5
+bc_d5_t1_abiotic <- bc_d5_t1[, c(1:8,10:34)]
+bc_d5_t1_abiotic_delta <- delta_abiotic(bc_d5_t1_abiotic)
+
+bc_d5_t5_abiotic <- bc_d5_t5[, c(1:8,10:34)]
+bc_d5_t5_abiotic_delta <- delta_abiotic(bc_d5_t5_abiotic)
+
+bc_d5_t15_abiotic <- bc_d5_t15[, c(1:8,10:34)]
+bc_d5_t15_abiotic_delta <- delta_abiotic(bc_d5_t15_abiotic)
+
+bc_d5_t30_abiotic <- bc_d5_t30[, c(1:8,10:34)]
+bc_d5_t30_abiotic_delta <- delta_abiotic(bc_d5_t30_abiotic)
+```
+
+#format before merge
+ab
+```{r}
+#ab_d1_t1
+ab_d1_t1_abiotic_delta$id3 <- paste(ab_d1_t1_abiotic_delta$id1, "/", ab_d1_t1_abiotic_delta$id2, sep = "")
+ab_d1_t1_comm$id3 <- paste(ab_d1_t1_comm$id1, "/", ab_d1_t1_comm$id2, sep = "")
+ab_d1_t1_abiotic_delta <- ab_d1_t1_abiotic_delta[-c(1,2)]
+ab_d1_t1_comm <- ab_d1_t1_comm[-c(1,2)]
+
+#ab_d1_t5
+ab_d1_t5_abiotic_delta$id3 <- paste(ab_d1_t5_abiotic_delta$id1, "/", ab_d1_t5_abiotic_delta$id2, sep = "")
+ab_d1_t5_comm$id3 <- paste(ab_d1_t5_comm$id1, "/", ab_d1_t5_comm$id2, sep = "")
+ab_d1_t5_abiotic_delta <- ab_d1_t5_abiotic_delta[-c(1,2)]
+ab_d1_t5_comm <- ab_d1_t5_comm[-c(1,2)]
+
+#ab_d1_t15
+ab_d1_t15_abiotic_delta$id3 <- paste(ab_d1_t15_abiotic_delta$id1, "/", ab_d1_t15_abiotic_delta$id2, sep = "")
+ab_d1_t15_comm$id3 <- paste(ab_d1_t15_comm$id1, "/", ab_d1_t15_comm$id2, sep = "")
+ab_d1_t15_abiotic_delta <- ab_d1_t15_abiotic_delta[-c(1,2)]
+ab_d1_t15_comm <- ab_d1_t15_comm[-c(1,2)]
+
+#ab_d1_t30
+ab_d1_t30_abiotic_delta$id3 <- paste(ab_d1_t30_abiotic_delta$id1, "/", ab_d1_t30_abiotic_delta$id2, sep = "")
+ab_d1_t30_comm$id3 <- paste(ab_d1_t30_comm$id1, "/", ab_d1_t30_comm$id2, sep = "")
+ab_d1_t30_abiotic_delta <- ab_d1_t30_abiotic_delta[-c(1,2)]
+ab_d1_t30_comm <- ab_d1_t30_comm[-c(1,2)]
+
+
+#ab_d3_t1
+ab_d3_t1_abiotic_delta$id3 <- paste(ab_d3_t1_abiotic_delta$id1, "/", ab_d3_t1_abiotic_delta$id2, sep = "")
+ab_d3_t1_comm$id3 <- paste(ab_d3_t1_comm$id1, "/", ab_d3_t1_comm$id2, sep = "")
+ab_d3_t1_abiotic_delta <- ab_d3_t1_abiotic_delta[-c(1,2)]
+ab_d3_t1_comm <- ab_d3_t1_comm[-c(1,2)]
+
+#ab_d3_t5
+ab_d3_t5_abiotic_delta$id3 <- paste(ab_d3_t5_abiotic_delta$id1, "/", ab_d3_t5_abiotic_delta$id2, sep = "")
+ab_d3_t5_comm$id3 <- paste(ab_d3_t5_comm$id1, "/", ab_d3_t5_comm$id2, sep = "")
+ab_d3_t5_abiotic_delta <- ab_d3_t5_abiotic_delta[-c(1,2)]
+ab_d3_t5_comm <- ab_d3_t5_comm[-c(1,2)]
+
+#ab_d3_t15
+ab_d3_t15_abiotic_delta$id3 <- paste(ab_d3_t15_abiotic_delta$id1, "/", ab_d3_t15_abiotic_delta$id2, sep = "")
+ab_d3_t15_comm$id3 <- paste(ab_d3_t15_comm$id1, "/", ab_d3_t15_comm$id2, sep = "")
+ab_d3_t15_abiotic_delta <- ab_d3_t15_abiotic_delta[-c(1,2)]
+ab_d3_t15_comm <- ab_d3_t15_comm[-c(1,2)]
+
+#ab_d3_t30
+ab_d3_t30_abiotic_delta$id3 <- paste(ab_d3_t30_abiotic_delta$id1, "/", ab_d3_t30_abiotic_delta$id2, sep = "")
+ab_d3_t30_comm$id3 <- paste(ab_d3_t30_comm$id1, "/", ab_d3_t30_comm$id2, sep = "")
+ab_d3_t30_abiotic_delta <- ab_d3_t30_abiotic_delta[-c(1,2)]
+ab_d3_t30_comm <- ab_d3_t30_comm[-c(1,2)]
+
+#ab_d5_t1
+ab_d5_t1_abiotic_delta$id3 <- paste(ab_d5_t1_abiotic_delta$id1, "/", ab_d5_t1_abiotic_delta$id2, sep = "")
+ab_d5_t1_comm$id3 <- paste(ab_d5_t1_comm$id1, "/", ab_d5_t1_comm$id2, sep = "")
+ab_d5_t1_abiotic_delta <- ab_d5_t1_abiotic_delta[-c(1,2)]
+ab_d5_t1_comm <- ab_d5_t1_comm[-c(1,2)]
+
+#ab_d5_t5
+ab_d5_t5_abiotic_delta$id3 <- paste(ab_d5_t5_abiotic_delta$id1, "/", ab_d5_t5_abiotic_delta$id2, sep = "")
+ab_d5_t5_comm$id3 <- paste(ab_d5_t5_comm$id1, "/", ab_d5_t5_comm$id2, sep = "")
+ab_d5_t5_abiotic_delta <- ab_d5_t5_abiotic_delta[-c(1,2)]
+ab_d5_t5_comm <- ab_d5_t5_comm[-c(1,2)]
+
+#ab_d5_t15
+ab_d5_t15_abiotic_delta$id3 <- paste(ab_d5_t15_abiotic_delta$id1, "/", ab_d5_t15_abiotic_delta$id2, sep = "")
+ab_d5_t15_comm$id3 <- paste(ab_d5_t15_comm$id1, "/", ab_d5_t15_comm$id2, sep = "")
+ab_d5_t15_abiotic_delta <- ab_d5_t15_abiotic_delta[-c(1,2)]
+ab_d5_t15_comm <- ab_d5_t15_comm[-c(1,2)]
+
+#ab_d5_t30
+ab_d5_t30_abiotic_delta$id3 <- paste(ab_d5_t30_abiotic_delta$id1, "/", ab_d5_t30_abiotic_delta$id2, sep = "")
+ab_d5_t30_comm$id3 <- paste(ab_d5_t30_comm$id1, "/", ab_d5_t30_comm$id2, sep = "")
+ab_d5_t30_abiotic_delta <- ab_d5_t30_abiotic_delta[-c(1,2)]
+ab_d5_t30_comm <- ab_d5_t30_comm[-c(1,2)]
+
+
+
+```
+ac
+```{r}
+#ac_d1_t1
+ac_d1_t1_abiotic_delta$id3 <- paste(ac_d1_t1_abiotic_delta$id1, "/", ac_d1_t1_abiotic_delta$id2, sep = "")
+ac_d1_t1_comm$id3 <- paste(ac_d1_t1_comm$id1, "/", ac_d1_t1_comm$id2, sep = "")
+ac_d1_t1_abiotic_delta <- ac_d1_t1_abiotic_delta[-c(1,2)]
+ac_d1_t1_comm <- ac_d1_t1_comm[-c(1,2)]
+
+#ac_d1_t5
+ac_d1_t5_abiotic_delta$id3 <- paste(ac_d1_t5_abiotic_delta$id1, "/", ac_d1_t5_abiotic_delta$id2, sep = "")
+ac_d1_t5_comm$id3 <- paste(ac_d1_t5_comm$id1, "/", ac_d1_t5_comm$id2, sep = "")
+ac_d1_t5_abiotic_delta <- ac_d1_t5_abiotic_delta[-c(1,2)]
+ac_d1_t5_comm <- ac_d1_t5_comm[-c(1,2)]
+
+#ac_d1_t15
+ac_d1_t15_abiotic_delta$id3 <- paste(ac_d1_t15_abiotic_delta$id1, "/", ac_d1_t15_abiotic_delta$id2, sep = "")
+ac_d1_t15_comm$id3 <- paste(ac_d1_t15_comm$id1, "/", ac_d1_t15_comm$id2, sep = "")
+ac_d1_t15_abiotic_delta <- ac_d1_t15_abiotic_delta[-c(1,2)]
+ac_d1_t15_comm <- ac_d1_t15_comm[-c(1,2)]
+
+#ac_d1_t30
+ac_d1_t30_abiotic_delta$id3 <- paste(ac_d1_t30_abiotic_delta$id1, "/", ac_d1_t30_abiotic_delta$id2, sep = "")
+ac_d1_t30_comm$id3 <- paste(ac_d1_t30_comm$id1, "/", ac_d1_t30_comm$id2, sep = "")
+ac_d1_t30_abiotic_delta <- ac_d1_t30_abiotic_delta[-c(1,2)]
+ac_d1_t30_comm <- ac_d1_t30_comm[-c(1,2)]
+
+
+#ac_d3_t1
+ac_d3_t1_abiotic_delta$id3 <- paste(ac_d3_t1_abiotic_delta$id1, "/", ac_d3_t1_abiotic_delta$id2, sep = "")
+ac_d3_t1_comm$id3 <- paste(ac_d3_t1_comm$id1, "/", ac_d3_t1_comm$id2, sep = "")
+ac_d3_t1_abiotic_delta <- ac_d3_t1_abiotic_delta[-c(1,2)]
+ac_d3_t1_comm <- ac_d3_t1_comm[-c(1,2)]
+
+#ac_d3_t5
+ac_d3_t5_abiotic_delta$id3 <- paste(ac_d3_t5_abiotic_delta$id1, "/", ac_d3_t5_abiotic_delta$id2, sep = "")
+ac_d3_t5_comm$id3 <- paste(ac_d3_t5_comm$id1, "/", ac_d3_t5_comm$id2, sep = "")
+ac_d3_t5_abiotic_delta <- ac_d3_t5_abiotic_delta[-c(1,2)]
+ac_d3_t5_comm <- ac_d3_t5_comm[-c(1,2)]
+
+#ac_d3_t15
+ac_d3_t15_abiotic_delta$id3 <- paste(ac_d3_t15_abiotic_delta$id1, "/", ac_d3_t15_abiotic_delta$id2, sep = "")
+ac_d3_t15_comm$id3 <- paste(ac_d3_t15_comm$id1, "/", ac_d3_t15_comm$id2, sep = "")
+ac_d3_t15_abiotic_delta <- ac_d3_t15_abiotic_delta[-c(1,2)]
+ac_d3_t15_comm <- ac_d3_t15_comm[-c(1,2)]
+
+#ac_d3_t30
+ac_d3_t30_abiotic_delta$id3 <- paste(ac_d3_t30_abiotic_delta$id1, "/", ac_d3_t30_abiotic_delta$id2, sep = "")
+ac_d3_t30_comm$id3 <- paste(ac_d3_t30_comm$id1, "/", ac_d3_t30_comm$id2, sep = "")
+ac_d3_t30_abiotic_delta <- ac_d3_t30_abiotic_delta[-c(1,2)]
+ac_d3_t30_comm <- ac_d3_t30_comm[-c(1,2)]
+
+#ac_d5_t1
+ac_d5_t1_abiotic_delta$id3 <- paste(ac_d5_t1_abiotic_delta$id1, "/", ac_d5_t1_abiotic_delta$id2, sep = "")
+ac_d5_t1_comm$id3 <- paste(ac_d5_t1_comm$id1, "/", ac_d5_t1_comm$id2, sep = "")
+ac_d5_t1_abiotic_delta <- ac_d5_t1_abiotic_delta[-c(1,2)]
+ac_d5_t1_comm <- ac_d5_t1_comm[-c(1,2)]
+
+#ac_d5_t5
+ac_d5_t5_abiotic_delta$id3 <- paste(ac_d5_t5_abiotic_delta$id1, "/", ac_d5_t5_abiotic_delta$id2, sep = "")
+ac_d5_t5_comm$id3 <- paste(ac_d5_t5_comm$id1, "/", ac_d5_t5_comm$id2, sep = "")
+ac_d5_t5_abiotic_delta <- ac_d5_t5_abiotic_delta[-c(1,2)]
+ac_d5_t5_comm <- ac_d5_t5_comm[-c(1,2)]
+
+#ac_d5_t15
+ac_d5_t15_abiotic_delta$id3 <- paste(ac_d5_t15_abiotic_delta$id1, "/", ac_d5_t15_abiotic_delta$id2, sep = "")
+ac_d5_t15_comm$id3 <- paste(ac_d5_t15_comm$id1, "/", ac_d5_t15_comm$id2, sep = "")
+ac_d5_t15_abiotic_delta <- ac_d5_t15_abiotic_delta[-c(1,2)]
+ac_d5_t15_comm <- ac_d5_t15_comm[-c(1,2)]
+
+#ac_d5_t30
+ac_d5_t30_abiotic_delta$id3 <- paste(ac_d5_t30_abiotic_delta$id1, "/", ac_d5_t30_abiotic_delta$id2, sep = "")
+ac_d5_t30_comm$id3 <- paste(ac_d5_t30_comm$id1, "/", ac_d5_t30_comm$id2, sep = "")
+ac_d5_t30_abiotic_delta <- ac_d5_t30_abiotic_delta[-c(1,2)]
+ac_d5_t30_comm <- ac_d5_t30_comm[-c(1,2)]
+
+```
+bc
+```{r}
+#bc_d1_t1
+bc_d1_t1_abiotic_delta$id3 <- paste(bc_d1_t1_abiotic_delta$id1, "/", bc_d1_t1_abiotic_delta$id2, sep = "")
+bc_d1_t1_comm$id3 <- paste(bc_d1_t1_comm$id1, "/", bc_d1_t1_comm$id2, sep = "")
+bc_d1_t1_abiotic_delta <- bc_d1_t1_abiotic_delta[-c(1,2)]
+bc_d1_t1_comm <- bc_d1_t1_comm[-c(1,2)]
+
+#bc_d1_t5
+bc_d1_t5_abiotic_delta$id3 <- paste(bc_d1_t5_abiotic_delta$id1, "/", bc_d1_t5_abiotic_delta$id2, sep = "")
+bc_d1_t5_comm$id3 <- paste(bc_d1_t5_comm$id1, "/", bc_d1_t5_comm$id2, sep = "")
+bc_d1_t5_abiotic_delta <- bc_d1_t5_abiotic_delta[-c(1,2)]
+bc_d1_t5_comm <- bc_d1_t5_comm[-c(1,2)]
+
+#bc_d1_t15
+bc_d1_t15_abiotic_delta$id3 <- paste(bc_d1_t15_abiotic_delta$id1, "/", bc_d1_t15_abiotic_delta$id2, sep = "")
+bc_d1_t15_comm$id3 <- paste(bc_d1_t15_comm$id1, "/", bc_d1_t15_comm$id2, sep = "")
+bc_d1_t15_abiotic_delta <- bc_d1_t15_abiotic_delta[-c(1,2)]
+bc_d1_t15_comm <- bc_d1_t15_comm[-c(1,2)]
+
+#bc_d1_t30
+bc_d1_t30_abiotic_delta$id3 <- paste(bc_d1_t30_abiotic_delta$id1, "/", bc_d1_t30_abiotic_delta$id2, sep = "")
+bc_d1_t30_comm$id3 <- paste(bc_d1_t30_comm$id1, "/", bc_d1_t30_comm$id2, sep = "")
+bc_d1_t30_abiotic_delta <- bc_d1_t30_abiotic_delta[-c(1,2)]
+bc_d1_t30_comm <- bc_d1_t30_comm[-c(1,2)]
+
+
+#bc_d3_t1
+bc_d3_t1_abiotic_delta$id3 <- paste(bc_d3_t1_abiotic_delta$id1, "/", bc_d3_t1_abiotic_delta$id2, sep = "")
+bc_d3_t1_comm$id3 <- paste(bc_d3_t1_comm$id1, "/", bc_d3_t1_comm$id2, sep = "")
+bc_d3_t1_abiotic_delta <- bc_d3_t1_abiotic_delta[-c(1,2)]
+bc_d3_t1_comm <- bc_d3_t1_comm[-c(1,2)]
+
+#bc_d3_t5
+bc_d3_t5_abiotic_delta$id3 <- paste(bc_d3_t5_abiotic_delta$id1, "/", bc_d3_t5_abiotic_delta$id2, sep = "")
+bc_d3_t5_comm$id3 <- paste(bc_d3_t5_comm$id1, "/", bc_d3_t5_comm$id2, sep = "")
+bc_d3_t5_abiotic_delta <- bc_d3_t5_abiotic_delta[-c(1,2)]
+bc_d3_t5_comm <- bc_d3_t5_comm[-c(1,2)]
+
+#bc_d3_t15
+bc_d3_t15_abiotic_delta$id3 <- paste(bc_d3_t15_abiotic_delta$id1, "/", bc_d3_t15_abiotic_delta$id2, sep = "")
+bc_d3_t15_comm$id3 <- paste(bc_d3_t15_comm$id1, "/", bc_d3_t15_comm$id2, sep = "")
+bc_d3_t15_abiotic_delta <- bc_d3_t15_abiotic_delta[-c(1,2)]
+bc_d3_t15_comm <- bc_d3_t15_comm[-c(1,2)]
+
+#bc_d3_t30
+bc_d3_t30_abiotic_delta$id3 <- paste(bc_d3_t30_abiotic_delta$id1, "/", bc_d3_t30_abiotic_delta$id2, sep = "")
+bc_d3_t30_comm$id3 <- paste(bc_d3_t30_comm$id1, "/", bc_d3_t30_comm$id2, sep = "")
+bc_d3_t30_abiotic_delta <- bc_d3_t30_abiotic_delta[-c(1,2)]
+bc_d3_t30_comm <- bc_d3_t30_comm[-c(1,2)]
+
+#bc_d5_t1
+bc_d5_t1_abiotic_delta$id3 <- paste(bc_d5_t1_abiotic_delta$id1, "/", bc_d5_t1_abiotic_delta$id2, sep = "")
+bc_d5_t1_comm$id3 <- paste(bc_d5_t1_comm$id1, "/", bc_d5_t1_comm$id2, sep = "")
+bc_d5_t1_abiotic_delta <- bc_d5_t1_abiotic_delta[-c(1,2)]
+bc_d5_t1_comm <- bc_d5_t1_comm[-c(1,2)]
+
+#bc_d5_t5
+bc_d5_t5_abiotic_delta$id3 <- paste(bc_d5_t5_abiotic_delta$id1, "/", bc_d5_t5_abiotic_delta$id2, sep = "")
+bc_d5_t5_comm$id3 <- paste(bc_d5_t5_comm$id1, "/", bc_d5_t5_comm$id2, sep = "")
+bc_d5_t5_abiotic_delta <- bc_d5_t5_abiotic_delta[-c(1,2)]
+bc_d5_t5_comm <- bc_d5_t5_comm[-c(1,2)]
+
+#bc_d5_t15
+bc_d5_t15_abiotic_delta$id3 <- paste(bc_d5_t15_abiotic_delta$id1, "/", bc_d5_t15_abiotic_delta$id2, sep = "")
+bc_d5_t15_comm$id3 <- paste(bc_d5_t15_comm$id1, "/", bc_d5_t15_comm$id2, sep = "")
+bc_d5_t15_abiotic_delta <- bc_d5_t15_abiotic_delta[-c(1,2)]
+bc_d5_t15_comm <- bc_d5_t15_comm[-c(1,2)]
+
+#bc_d5_t30
+bc_d5_t30_abiotic_delta$id3 <- paste(bc_d5_t30_abiotic_delta$id1, "/", bc_d5_t30_abiotic_delta$id2, sep = "")
+bc_d5_t30_comm$id3 <- paste(bc_d5_t30_comm$id1, "/", bc_d5_t30_comm$id2, sep = "")
+bc_d5_t30_abiotic_delta <- bc_d5_t30_abiotic_delta[-c(1,2)]
+bc_d5_t30_comm <- bc_d5_t30_comm[-c(1,2)]
+
+
+
+```
+
+# Merge data frames based on the common column 'id'
+ab
+```{r}
+# Merge data frames based on the common column 'id'
+ab_d1_t1_merged <- merge(ab_d1_t1_abiotic_delta, ab_d1_t1_comm, by = "id3", all = TRUE)
+ab_d1_t1_final <- fmerged_filter_ab(ab_d1_t1_merged)
+
+ab_d1_t5_merged <- merge(ab_d1_t5_abiotic_delta, ab_d1_t5_comm, by = "id3", all = TRUE)
+ab_d1_t5_final <- fmerged_filter_ab(ab_d1_t5_merged)
+
+ab_d1_t15_merged <- merge(ab_d1_t15_abiotic_delta, ab_d1_t15_comm, by = "id3", all = TRUE)
+ab_d1_t15_final <- fmerged_filter_ab(ab_d1_t15_merged)
+
+ab_d1_t30_merged <- merge(ab_d1_t30_abiotic_delta, ab_d1_t30_comm, by = "id3", all = TRUE)
+ab_d1_t30_final <- fmerged_filter_ab(ab_d1_t30_merged)
+
+# Merge data frames based on the common column 'id'
+ab_d3_t1_merged <- merge(ab_d3_t1_abiotic_delta, ab_d3_t1_comm, by = "id3", all = TRUE)
+ab_d3_t1_final <- fmerged_filter_ab(ab_d3_t1_merged)
+
+ab_d3_t5_merged <- merge(ab_d3_t5_abiotic_delta, ab_d3_t5_comm, by = "id3", all = TRUE)
+ab_d3_t5_final <- fmerged_filter_ab(ab_d3_t5_merged)
+
+ab_d3_t15_merged <- merge(ab_d3_t15_abiotic_delta, ab_d3_t15_comm, by = "id3", all = TRUE)
+ab_d3_t15_final <- fmerged_filter_ab(ab_d3_t15_merged)
+
+ab_d3_t30_merged <- merge(ab_d3_t30_abiotic_delta, ab_d3_t30_comm, by = "id3", all = TRUE)
+ab_d3_t30_final <- fmerged_filter_ab(ab_d3_t30_merged)
+
+# Merge data frames based on the common column 'id'
+ab_d5_t1_merged <- merge(ab_d5_t1_abiotic_delta, ab_d5_t1_comm, by = "id3", all = TRUE)
+ab_d5_t1_final <- fmerged_filter_ab(ab_d5_t1_merged)
+
+ab_d5_t5_merged <- merge(ab_d5_t5_abiotic_delta, ab_d5_t5_comm, by = "id3", all = TRUE)
+ab_d5_t5_final <- fmerged_filter_ab(ab_d5_t5_merged)
+
+ab_d5_t15_merged <- merge(ab_d5_t15_abiotic_delta, ab_d5_t15_comm, by = "id3", all = TRUE)
+ab_d5_t15_final <- fmerged_filter_ab(ab_d5_t15_merged)
+
+ab_d5_t30_merged <- merge(ab_d5_t30_abiotic_delta, ab_d5_t30_comm, by = "id3", all = TRUE)
+ab_d5_t30_final <- fmerged_filter_ab(ab_d5_t30_merged)
+```
+ac
+```{r}
+# Merge data frames based on the common column 'id'
+ac_d1_t1_merged <- merge(ac_d1_t1_abiotic_delta, ac_d1_t1_comm, by = "id3", all = TRUE)
+ac_d1_t1_final <- fmerged_filter_ac(ac_d1_t1_merged)
+
+ac_d1_t5_merged <- merge(ac_d1_t5_abiotic_delta, ac_d1_t5_comm, by = "id3", all = TRUE)
+ac_d1_t5_final <- fmerged_filter_ac(ac_d1_t5_merged)
+
+ac_d1_t15_merged <- merge(ac_d1_t15_abiotic_delta, ac_d1_t15_comm, by = "id3", all = TRUE)
+ac_d1_t15_final <- fmerged_filter_ac(ac_d1_t15_merged)
+
+ac_d1_t30_merged <- merge(ac_d1_t30_abiotic_delta, ac_d1_t30_comm, by = "id3", all = TRUE)
+ac_d1_t30_final <- fmerged_filter_ac(ac_d1_t30_merged)
+
+# Merge data frames based on the common column 'id'
+ac_d3_t1_merged <- merge(ac_d3_t1_abiotic_delta, ac_d3_t1_comm, by = "id3", all = TRUE)
+ac_d3_t1_final <- fmerged_filter_ac(ac_d3_t1_merged)
+
+ac_d3_t5_merged <- merge(ac_d3_t5_abiotic_delta, ac_d3_t5_comm, by = "id3", all = TRUE)
+ac_d3_t5_final <- fmerged_filter_ac(ac_d3_t5_merged)
+
+ac_d3_t15_merged <- merge(ac_d3_t15_abiotic_delta, ac_d3_t15_comm, by = "id3", all = TRUE)
+ac_d3_t15_final <- fmerged_filter_ac(ac_d3_t15_merged)
+
+ac_d3_t30_merged <- merge(ac_d3_t30_abiotic_delta, ac_d3_t30_comm, by = "id3", all = TRUE)
+ac_d3_t30_final <- fmerged_filter_ac(ac_d3_t30_merged)
+
+# Merge data frames based on the common column 'id'
+ac_d5_t1_merged <- merge(ac_d5_t1_abiotic_delta, ac_d5_t1_comm, by = "id3", all = TRUE)
+ac_d5_t1_final <- fmerged_filter_ac(ac_d5_t1_merged)
+
+ac_d5_t5_merged <- merge(ac_d5_t5_abiotic_delta, ac_d5_t5_comm, by = "id3", all = TRUE)
+ac_d5_t5_final <- fmerged_filter_ac(ac_d5_t5_merged)
+
+ac_d5_t15_merged <- merge(ac_d5_t15_abiotic_delta, ac_d5_t15_comm, by = "id3", all = TRUE)
+ac_d5_t15_final <- fmerged_filter_ac(ac_d5_t15_merged)
+
+ac_d5_t30_merged <- merge(ac_d5_t30_abiotic_delta, ac_d5_t30_comm, by = "id3", all = TRUE)
+ac_d5_t30_final <- fmerged_filter_ac(ac_d5_t30_merged)
+```
+bc
+```{r}
+# Merge data frames based on the common column 'id'
+bc_d1_t1_merged <- merge(bc_d1_t1_abiotic_delta, bc_d1_t1_comm, by = "id3", all = TRUE)
+bc_d1_t1_final <- fmerged_filter_bc(bc_d1_t1_merged)
+
+bc_d1_t5_merged <- merge(bc_d1_t5_abiotic_delta, bc_d1_t5_comm, by = "id3", all = TRUE)
+bc_d1_t5_final <- fmerged_filter_bc(bc_d1_t5_merged)
+
+bc_d1_t15_merged <- merge(bc_d1_t15_abiotic_delta, bc_d1_t15_comm, by = "id3", all = TRUE)
+bc_d1_t15_final <- fmerged_filter_bc(bc_d1_t15_merged)
+
+bc_d1_t30_merged <- merge(bc_d1_t30_abiotic_delta, bc_d1_t30_comm, by = "id3", all = TRUE)
+bc_d1_t30_final <- fmerged_filter_bc(bc_d1_t30_merged)
+
+# Merge data frames based on the common column 'id'
+bc_d3_t1_merged <- merge(bc_d3_t1_abiotic_delta, bc_d3_t1_comm, by = "id3", all = TRUE)
+bc_d3_t1_final <- fmerged_filter_bc(bc_d3_t1_merged)
+
+bc_d3_t5_merged <- merge(bc_d3_t5_abiotic_delta, bc_d3_t5_comm, by = "id3", all = TRUE)
+bc_d3_t5_final <- fmerged_filter_bc(bc_d3_t5_merged)
+
+bc_d3_t15_merged <- merge(bc_d3_t15_abiotic_delta, bc_d3_t15_comm, by = "id3", all = TRUE)
+bc_d3_t15_final <- fmerged_filter_bc(bc_d3_t15_merged)
+
+bc_d3_t30_merged <- merge(bc_d3_t30_abiotic_delta, bc_d3_t30_comm, by = "id3", all = TRUE)
+bc_d3_t30_final <- fmerged_filter_bc(bc_d3_t30_merged)
+
+# Merge data frames based on the common column 'id'
+bc_d5_t1_merged <- merge(bc_d5_t1_abiotic_delta, bc_d5_t1_comm, by = "id3", all = TRUE)
+bc_d5_t1_final <- fmerged_filter_bc(bc_d5_t1_merged)
+
+bc_d5_t5_merged <- merge(bc_d5_t5_abiotic_delta, bc_d5_t5_comm, by = "id3", all = TRUE)
+bc_d5_t5_final <- fmerged_filter_bc(bc_d5_t5_merged)
+
+bc_d5_t15_merged <- merge(bc_d5_t15_abiotic_delta, bc_d5_t15_comm, by = "id3", all = TRUE)
+bc_d5_t15_final <- fmerged_filter_bc(bc_d5_t15_merged)
+
+bc_d5_t30_merged <- merge(bc_d5_t30_abiotic_delta, bc_d5_t30_comm, by = "id3", all = TRUE)
+bc_d5_t30_final <- fmerged_filter_bc(bc_d5_t30_merged)
+```
+
+Clean the environment
+```{r}
+#ab
+rm(ab_d1_t1_abiotic, ab_d1_t1_abiotic_delta, ab_d1_t1_abun, ab_d1_t1_comm, ab_d1_t1_merged, ab_d1_t1_abund.dist)
+rm(ab_d1_t5_abiotic, ab_d1_t5_abiotic_delta, ab_d1_t5_abun, ab_d1_t5_comm, ab_d1_t5_merged, ab_d1_t5_abund.dist)
+rm(ab_d1_t15_abiotic, ab_d1_t15_abiotic_delta, ab_d1_t15_abun, ab_d1_t15_comm, ab_d1_t15_merged, ab_d1_t15_abund.dist)
+rm(ab_d1_t30_abiotic, ab_d1_t30_abiotic_delta, ab_d1_t30_abun, ab_d1_t30_comm, ab_d1_t30_merged, ab_d1_t30_abund.dist)
+
+rm(ab_d3_t1_abiotic, ab_d3_t1_abiotic_delta, ab_d3_t1_abun, ab_d3_t1_comm, ab_d3_t1_merged, ab_d3_t1_abund.dist)
+rm(ab_d3_t5_abiotic, ab_d3_t5_abiotic_delta, ab_d3_t5_abun, ab_d3_t5_comm, ab_d3_t5_merged, ab_d3_t5_abund.dist)
+rm(ab_d3_t15_abiotic, ab_d3_t15_abiotic_delta, ab_d3_t15_abun, ab_d3_t15_comm, ab_d3_t15_merged, ab_d3_t15_abund.dist)
+rm(ab_d3_t30_abiotic, ab_d3_t30_abiotic_delta, ab_d3_t30_abun, ab_d3_t30_comm, ab_d3_t30_merged, ab_d3_t30_abund.dist)
+
+rm(ab_d5_t1_abiotic, ab_d5_t1_abiotic_delta, ab_d5_t1_abun, ab_d5_t1_comm, ab_d5_t1_merged, ab_d5_t1_abund.dist)
+rm(ab_d5_t5_abiotic, ab_d5_t5_abiotic_delta, ab_d5_t5_abun, ab_d5_t5_comm, ab_d5_t5_merged, ab_d5_t5_abund.dist)
+rm(ab_d5_t15_abiotic, ab_d5_t15_abiotic_delta, ab_d5_t15_abun, ab_d5_t15_comm, ab_d5_t15_merged, ab_d5_t15_abund.dist)
+rm(ab_d5_t30_abiotic, ab_d5_t30_abiotic_delta, ab_d5_t30_abun, ab_d5_t30_comm, ab_d5_t30_merged, ab_d5_t30_abund.dist)
+#ac
+rm(ac_d1_t1_abiotic, ac_d1_t1_abiotic_delta, ac_d1_t1_abun, ac_d1_t1_comm, ac_d1_t1_merged, ac_d1_t1_abund.dist)
+rm(ac_d1_t5_abiotic, ac_d1_t5_abiotic_delta, ac_d1_t5_abun, ac_d1_t5_comm, ac_d1_t5_merged, ac_d1_t5_abund.dist)
+rm(ac_d1_t15_abiotic, ac_d1_t15_abiotic_delta, ac_d1_t15_abun, ac_d1_t15_comm, ac_d1_t15_merged, ac_d1_t15_abund.dist)
+rm(ac_d1_t30_abiotic, ac_d1_t30_abiotic_delta, ac_d1_t30_abun, ac_d1_t30_comm, ac_d1_t30_merged, ac_d1_t30_abund.dist)
+
+rm(ac_d3_t1_abiotic, ac_d3_t1_abiotic_delta, ac_d3_t1_abun, ac_d3_t1_comm, ac_d3_t1_merged, ac_d3_t1_abund.dist)
+rm(ac_d3_t5_abiotic, ac_d3_t5_abiotic_delta, ac_d3_t5_abun, ac_d3_t5_comm, ac_d3_t5_merged, ac_d3_t5_abund.dist)
+rm(ac_d3_t15_abiotic, ac_d3_t15_abiotic_delta, ac_d3_t15_abun, ac_d3_t15_comm, ac_d3_t15_merged, ac_d3_t15_abund.dist)
+rm(ac_d3_t30_abiotic, ac_d3_t30_abiotic_delta, ac_d3_t30_abun, ac_d3_t30_comm, ac_d3_t30_merged, ac_d3_t30_abund.dist)
+
+rm(ac_d5_t1_abiotic, ac_d5_t1_abiotic_delta, ac_d5_t1_abun, ac_d5_t1_comm, ac_d5_t1_merged, ac_d5_t1_abund.dist)
+rm(ac_d5_t5_abiotic, ac_d5_t5_abiotic_delta, ac_d5_t5_abun, ac_d5_t5_comm, ac_d5_t5_merged, ac_d5_t5_abund.dist)
+rm(ac_d5_t15_abiotic, ac_d5_t15_abiotic_delta, ac_d5_t15_abun, ac_d5_t15_comm, ac_d5_t15_merged, ac_d5_t15_abund.dist)
+rm(ac_d5_t30_abiotic, ac_d5_t30_abiotic_delta, ac_d5_t30_abun, ac_d5_t30_comm, ac_d5_t30_merged, ac_d5_t30_abund.dist)
+#bc
+rm(bc_d1_t1_abiotic, bc_d1_t1_abiotic_delta, bc_d1_t1_abun, bc_d1_t1_comm, bc_d1_t1_merged, bc_d1_t1_abund.dist)
+rm(bc_d1_t5_abiotic, bc_d1_t5_abiotic_delta, bc_d1_t5_abun, bc_d1_t5_comm, bc_d1_t5_merged, bc_d1_t5_abund.dist)
+rm(bc_d1_t15_abiotic, bc_d1_t15_abiotic_delta, bc_d1_t15_abun, bc_d1_t15_comm, bc_d1_t15_merged, bc_d1_t15_abund.dist)
+rm(bc_d1_t30_abiotic, bc_d1_t30_abiotic_delta, bc_d1_t30_abun, bc_d1_t30_comm, bc_d1_t30_merged, bc_d1_t30_abund.dist)
+
+rm(bc_d3_t1_abiotic, bc_d3_t1_abiotic_delta, bc_d3_t1_abun, bc_d3_t1_comm, bc_d3_t1_merged, bc_d3_t1_abund.dist)
+rm(bc_d3_t5_abiotic, bc_d3_t5_abiotic_delta, bc_d3_t5_abun, bc_d3_t5_comm, bc_d3_t5_merged, bc_d3_t5_abund.dist)
+rm(bc_d3_t15_abiotic, bc_d3_t15_abiotic_delta, bc_d3_t15_abun, bc_d3_t15_comm, bc_d3_t15_merged, bc_d3_t15_abund.dist)
+rm(bc_d3_t30_abiotic, bc_d3_t30_abiotic_delta, bc_d3_t30_abun, bc_d3_t30_comm, bc_d3_t30_merged, bc_d3_t30_abund.dist)
+
+rm(bc_d5_t1_abiotic, bc_d5_t1_abiotic_delta, bc_d5_t1_abun, bc_d5_t1_comm, bc_d5_t1_merged, bc_d5_t1_abund.dist)
+rm(bc_d5_t5_abiotic, bc_d5_t5_abiotic_delta, bc_d5_t5_abun, bc_d5_t5_comm, bc_d5_t5_merged, bc_d5_t5_abund.dist)
+rm(bc_d5_t15_abiotic, bc_d5_t15_abiotic_delta, bc_d5_t15_abun, bc_d5_t15_comm, bc_d5_t15_merged, bc_d5_t15_abund.dist)
+rm(bc_d5_t30_abiotic, bc_d5_t30_abiotic_delta, bc_d5_t30_abun, bc_d5_t30_comm, bc_d5_t30_merged, bc_d5_t30_abund.dist)
+
+```
+export
+```{r}
+write.csv(ab_d1_t1_final, "./delta_var_comm_distance/abiotic_ab_d1_t1.csv", row.names = FALSE)
+write.csv(ab_d1_t5_final, "./delta_var_comm_distance/abiotic_ab_d1_t5.csv", row.names = FALSE)
+write.csv(ab_d1_t15_final, "./delta_var_comm_distance/abiotic_ab_d1_t15.csv", row.names = FALSE)
+write.csv(ab_d1_t30_final, "./delta_var_comm_distance/abiotic_ab_d1_t30.csv", row.names = FALSE)
+
+write.csv(ab_d3_t1_final, "./delta_var_comm_distance/abiotic_ab_d3_t1.csv", row.names = FALSE)
+write.csv(ab_d3_t5_final, "./delta_var_comm_distance/abiotic_ab_d3_t5.csv", row.names = FALSE)
+write.csv(ab_d3_t15_final, "./delta_var_comm_distance/abiotic_ab_d3_t15.csv", row.names = FALSE)
+write.csv(ab_d3_t30_final, "./delta_var_comm_distance/abiotic_ab_d3_t30.csv", row.names = FALSE)
+
+write.csv(ab_d5_t1_final, "./delta_var_comm_distance/abiotic_ab_d5_t1.csv", row.names = FALSE)
+write.csv(ab_d5_t5_final, "./delta_var_comm_distance/abiotic_ab_d5_t5.csv", row.names = FALSE)
+write.csv(ab_d5_t15_final, "./delta_var_comm_distance/abiotic_ab_d5_t15.csv", row.names = FALSE)
+write.csv(ab_d5_t30_final, "./delta_var_comm_distance/abiotic_ab_d5_t30.csv", row.names = FALSE)
+
+write.csv(ac_d1_t1_final, "./delta_var_comm_distance/abiotic_ac_d1_t1.csv", row.names = FALSE)
+write.csv(ac_d1_t5_final, "./delta_var_comm_distance/abiotic_ac_d1_t5.csv", row.names = FALSE)
+write.csv(ac_d1_t15_final, "./delta_var_comm_distance/abiotic_ac_d1_t15.csv", row.names = FALSE)
+write.csv(ac_d1_t30_final, "./delta_var_comm_distance/abiotic_ac_d1_t30.csv", row.names = FALSE)
+
+write.csv(ac_d3_t1_final, "./delta_var_comm_distance/abiotic_ac_d3_t1.csv", row.names = FALSE)
+write.csv(ac_d3_t5_final, "./delta_var_comm_distance/abiotic_ac_d3_t5.csv", row.names = FALSE)
+write.csv(ac_d3_t15_final, "./delta_var_comm_distance/abiotic_ac_d3_t15.csv", row.names = FALSE)
+write.csv(ac_d3_t30_final, "./delta_var_comm_distance/abiotic_ac_d3_t30.csv", row.names = FALSE)
+
+write.csv(ac_d5_t1_final, "./delta_var_comm_distance/abiotic_ac_d5_t1.csv", row.names = FALSE)
+write.csv(ac_d5_t5_final, "./delta_var_comm_distance/abiotic_ac_d5_t5.csv", row.names = FALSE)
+write.csv(ac_d5_t15_final, "./delta_var_comm_distance/abiotic_ac_d5_t15.csv", row.names = FALSE)
+write.csv(ac_d5_t30_final, "./delta_var_comm_distance/abiotic_ac_d5_t30.csv", row.names = FALSE)
+
+
+write.csv(bc_d1_t1_final, "./delta_var_comm_distance/abiotic_bc_d1_t1.csv", row.names = FALSE)
+write.csv(bc_d1_t5_final, "./delta_var_comm_distance/abiotic_bc_d1_t5.csv", row.names = FALSE)
+write.csv(bc_d1_t15_final, "./delta_var_comm_distance/abiotic_bc_d1_t15.csv", row.names = FALSE)
+write.csv(bc_d1_t30_final, "./delta_var_comm_distance/abiotic_bc_d1_t30.csv", row.names = FALSE)
+
+write.csv(bc_d3_t1_final, "./delta_var_comm_distance/abiotic_bc_d3_t1.csv", row.names = FALSE)
+write.csv(bc_d3_t5_final, "./delta_var_comm_distance/abiotic_bc_d3_t5.csv", row.names = FALSE)
+write.csv(bc_d3_t15_final, "./delta_var_comm_distance/abiotic_bc_d3_t15.csv", row.names = FALSE)
+write.csv(bc_d3_t30_final, "./delta_var_comm_distance/abiotic_bc_d3_t30.csv", row.names = FALSE)
+
+write.csv(bc_d5_t1_final, "./delta_var_comm_distance/abiotic_bc_d5_t1.csv", row.names = FALSE)
+write.csv(bc_d5_t5_final, "./delta_var_comm_distance/abiotic_bc_d5_t5.csv", row.names = FALSE)
+write.csv(bc_d5_t15_final, "./delta_var_comm_distance/abiotic_bc_d5_t15.csv", row.names = FALSE)
+write.csv(bc_d5_t30_final, "./delta_var_comm_distance/abiotic_bc_d5_t30.csv", row.names = FALSE)
+
+
+```
+
+rbind per timepoint and treatment
+```{r}
+d1_t1<- rbind(ab_d1_t1_final, ac_d1_t1_final, bc_d1_t1_final)
+d1_t5<- rbind(ab_d1_t5_final, ac_d1_t5_final, bc_d1_t5_final)
+d1_t15<- rbind(ab_d1_t15_final, ac_d1_t15_final, bc_d1_t15_final)
+d1_t30<- rbind(ab_d1_t30_final, ac_d1_t30_final, bc_d1_t30_final)
+
+d3_t1<- rbind(ab_d3_t1_final, ac_d3_t1_final, bc_d3_t1_final)
+d3_t5<- rbind(ab_d3_t5_final, ac_d3_t5_final, bc_d3_t5_final)
+d3_t15<- rbind(ab_d3_t15_final, ac_d3_t15_final, bc_d3_t15_final)
+d3_t30<- rbind(ab_d3_t30_final, ac_d3_t30_final, bc_d3_t30_final)
+
+d5_t1<- rbind(ab_d5_t1_final, ac_d5_t1_final, bc_d5_t1_final)
+d5_t5<- rbind(ab_d5_t5_final, ac_d5_t5_final, bc_d5_t5_final)
+d5_t15<- rbind(ab_d5_t15_final, ac_d5_t15_final, bc_d5_t15_final)
+d5_t30<- rbind(ab_d5_t30_final, ac_d5_t30_final, bc_d5_t30_final)
+
+d1 <- rbind(d1_t1, d1_t5, d1_t15, d1_t30)
+d3 <- rbind(d3_t1, d3_t5, d3_t15, d3_t30)
+d5 <- rbind(d5_t1, d5_t5, d5_t15, d5_t30)
+
+ab_d1 <- rbind(ab_d1_t1_final, ab_d1_t5_final, ab_d1_t15_final, ab_d1_t30_final)
+ab_d3 <- rbind(ab_d3_t1_final, ab_d3_t5_final, ab_d3_t15_final, ab_d3_t30_final)
+ab_d5 <- rbind(ab_d5_t1_final, ab_d5_t5_final, ab_d5_t15_final, ab_d5_t30_final)
+
+ac_d1 <- rbind(ac_d1_t1_final, ac_d1_t5_final, ac_d1_t15_final, ac_d1_t30_final)
+ac_d3 <- rbind(ac_d3_t1_final, ac_d3_t5_final, ac_d3_t15_final, ac_d3_t30_final)
+ac_d5 <- rbind(ac_d5_t1_final, ac_d5_t5_final, ac_d5_t15_final, ac_d5_t30_final)
+
+bc_d1 <- rbind(bc_d1_t1_final, bc_d1_t5_final, bc_d1_t15_final, bc_d1_t30_final)
+bc_d3 <- rbind(bc_d3_t1_final, bc_d3_t5_final, bc_d3_t15_final, bc_d3_t30_final)
+bc_d5 <- rbind(bc_d5_t1_final, bc_d5_t5_final, bc_d5_t15_final, bc_d5_t30_final)
+
+ab <- rbind(ab_d1, ab_d3, ab_d5)
+ac <- rbind(ac_d1, ac_d3, ac_d5)
+bc <- rbind(bc_d1, bc_d3, bc_d5)
+
+
+```
+
+export
+```{r}
+write.csv(d1_t1, "./delta_var_comm_distance/abiotic_d1_t1.csv", row.names = FALSE)
+write.csv(d1_t5, "./delta_var_comm_distance/abiotic_d1_t5.csv", row.names = FALSE)
+write.csv(d1_t15, "./delta_var_comm_distance/abiotic_d1_t15.csv", row.names = FALSE)
+write.csv(d1_t30, "./delta_var_comm_distance/abiotic_d1_t30.csv", row.names = FALSE)
+
+write.csv(d3_t1, "./delta_var_comm_distance/abiotic_d3_t1.csv", row.names = FALSE)
+write.csv(d3_t5, "./delta_var_comm_distance/abiotic_d3_t5.csv", row.names = FALSE)
+write.csv(d3_t15, "./delta_var_comm_distance/abiotic_d3_t15.csv", row.names = FALSE)
+write.csv(d3_t30, "./delta_var_comm_distance/abiotic_d3_t30.csv", row.names = FALSE)
+
+write.csv(d5_t1, "./delta_var_comm_distance/abiotic_d5_t1.csv", row.names = FALSE)
+write.csv(d5_t5, "./delta_var_comm_distance/abiotic_d5_t5.csv", row.names = FALSE)
+write.csv(d5_t15, "./delta_var_comm_distance/abiotic_d5_t15.csv", row.names = FALSE)
+write.csv(d5_t30, "./delta_var_comm_distance/abiotic_d5_t30.csv", row.names = FALSE)
+
+write.csv(d1, "./delta_var_comm_distance/abiotic_d1.csv", row.names = FALSE)
+write.csv(d3, "./delta_var_comm_distance/abiotic_d3.csv", row.names = FALSE)
+write.csv(d5, "./delta_var_comm_distance/abiotic_d5.csv", row.names = FALSE)
+
+```
+
+```{r}
+write.csv(ab_d1, "./delta_var_comm_distance/abiotic_ab_d1.csv", row.names = FALSE)
+write.csv(ab_d3, "./delta_var_comm_distance/abiotic_ab_d3.csv", row.names = FALSE)
+write.csv(ab_d5, "./delta_var_comm_distance/abiotic_ab_d5.csv", row.names = FALSE)
+
+write.csv(ac_d1, "./delta_var_comm_distance/abiotic_ac_d1.csv", row.names = FALSE)
+write.csv(ac_d3, "./delta_var_comm_distance/abiotic_ac_d3.csv", row.names = FALSE)
+write.csv(ac_d5, "./delta_var_comm_distance/abiotic_ac_d5.csv", row.names = FALSE)
+
+write.csv(bc_d1, "./delta_var_comm_distance/abiotic_bc_d1.csv", row.names = FALSE)
+write.csv(bc_d3, "./delta_var_comm_distance/abiotic_bc_d3.csv", row.names = FALSE)
+write.csv(bc_d5, "./delta_var_comm_distance/abiotic_bc_d5.csv", row.names = FALSE)
+
+write.csv(ab, "./delta_var_comm_distance/abiotic_ab.csv", row.names = FALSE)
+write.csv(ac, "./delta_var_comm_distance/abiotic_ac.csv", row.names = FALSE)
+write.csv(bc, "./delta_var_comm_distance/abiotic_bc.csv", row.names = FALSE)
+```
+
+

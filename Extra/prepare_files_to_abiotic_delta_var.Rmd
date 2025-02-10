@@ -1,0 +1,193 @@
+---
+title: "prepare_files_to_abiotic_delta_var"
+output: html_document
+date: "2025-02-10"
+---
+
+#0.Load library
+```{r}
+library(phyloseq)
+
+```
+
+#1. Load phyloseq object
+
+```{r}
+load("./phyloseq.Rdata")
+dat <- ps_rare2
+```
+Extract otu table
+```{r}
+dat.otu <- as.data.frame(otu_table(dat))
+```
+
+remove columns that sum zero
+```{r}
+# delete columns with zero sums
+table_set <- dat.otu[, which(colSums(dat.otu) != 0)]
+```
+
+export files
+```{r}
+write.csv(table_set, "./set_otu.csv", row.names = TRUE)
+```
+
+On excel, add the chemistry (soil_properties_controls_mixtures) and physical data, add soil, time and div column 
+- save as 
+#set_otu_abiotic_id.csv
+```{r}
+dat <- read.csv("./set_otu_abiotic_id.csv", header = TRUE)
+```
+Subset
+```{r}
+library("dplyr") 
+dat_ab<- dat %>% filter(soil %in% c("SOIL_A_af", "SOIL_B_af", "SOIL_AXB"))
+dat_ac<- dat %>% filter(soil %in% c("SOIL_A_af", "SOIL_C_af", "SOIL_AXC"))
+dat_bc<- dat %>% filter(soil %in% c("SOIL_B_af", "SOIL_C_af", "SOIL_BXC"))
+
+
+dat_ab_d1_t1<- dat_ab %>% filter(div %in% c("d1"), time%in% c("t1"))
+dat_ac_d1_t1<- dat_ac %>% filter(div %in% c("d1"), time%in% c("t1"))
+dat_bc_d1_t1<- dat_bc %>% filter(div %in% c("d1"), time%in% c("t1"))
+
+dat_ab_d1_t5<- dat_ab %>% filter(div %in% c("d1"), time%in% c("t5"))
+dat_ac_d1_t5<- dat_ac %>% filter(div %in% c("d1"), time%in% c("t5"))
+dat_bc_d1_t5<- dat_bc %>% filter(div %in% c("d1"), time%in% c("t5"))
+
+dat_ab_d1_t15<- dat_ab %>% filter(div %in% c("d1"), time%in% c("t15"))
+dat_ac_d1_t15<- dat_ac %>% filter(div %in% c("d1"), time%in% c("t15"))
+dat_bc_d1_t15<- dat_bc %>% filter(div %in% c("d1"), time%in% c("t15"))
+
+dat_ab_d1_t30<- dat_ab %>% filter(div %in% c("d1"), time%in% c("t30"))
+dat_ac_d1_t30<- dat_ac %>% filter(div %in% c("d1"), time%in% c("t30"))
+dat_bc_d1_t30<- dat_bc %>% filter(div %in% c("d1"), time%in% c("t30"))
+
+#d3
+dat_ab_d3_t1<- dat_ab %>% filter(div %in% c("d3"), time%in% c("t1"))
+dat_ac_d3_t1<- dat_ac %>% filter(div %in% c("d3"), time%in% c("t1"))
+dat_bc_d3_t1<- dat_bc %>% filter(div %in% c("d3"), time%in% c("t1"))
+
+dat_ab_d3_t5<- dat_ab %>% filter(div %in% c("d3"), time%in% c("t5"))
+dat_ac_d3_t5<- dat_ac %>% filter(div %in% c("d3"), time%in% c("t5"))
+dat_bc_d3_t5<- dat_bc %>% filter(div %in% c("d3"), time%in% c("t5"))
+
+dat_ab_d3_t15<- dat_ab %>% filter(div %in% c("d3"), time%in% c("t15"))
+dat_ac_d3_t15<- dat_ac %>% filter(div %in% c("d3"), time%in% c("t15"))
+dat_bc_d3_t15<- dat_bc %>% filter(div %in% c("d3"), time%in% c("t15"))
+
+dat_ab_d3_t30<- dat_ab %>% filter(div %in% c("d3"), time%in% c("t30"))
+dat_ac_d3_t30<- dat_ac %>% filter(div %in% c("d3"), time%in% c("t30"))
+dat_bc_d3_t30<- dat_bc %>% filter(div %in% c("d3"), time%in% c("t30"))
+
+#d5
+dat_ab_d5_t1<- dat_ab %>% filter(div %in% c("d5"), time%in% c("t1"))
+dat_ac_d5_t1<- dat_ac %>% filter(div %in% c("d5"), time%in% c("t1"))
+dat_bc_d5_t1<- dat_bc %>% filter(div %in% c("d5"), time%in% c("t1"))
+
+dat_ab_d5_t5<- dat_ab %>% filter(div %in% c("d5"), time%in% c("t5"))
+dat_ac_d5_t5<- dat_ac %>% filter(div %in% c("d5"), time%in% c("t5"))
+dat_bc_d5_t5<- dat_bc %>% filter(div %in% c("d5"), time%in% c("t5"))
+
+dat_ab_d5_t15<- dat_ab %>% filter(div %in% c("d5"), time%in% c("t15"))
+dat_ac_d5_t15<- dat_ac %>% filter(div %in% c("d5"), time%in% c("t15"))
+dat_bc_d5_t15<- dat_bc %>% filter(div %in% c("d5"), time%in% c("t15"))
+
+dat_ab_d5_t30<- dat_ab %>% filter(div %in% c("d5"), time%in% c("t30"))
+dat_ac_d5_t30<- dat_ac %>% filter(div %in% c("d5"), time%in% c("t30"))
+dat_bc_d5_t30<- dat_bc %>% filter(div %in% c("d5"), time%in% c("t30"))
+```
+
+```{r}
+# delete columns with zero sums
+summer <- function(x){
+    if(is.numeric(x)){
+        sum(x) > 1
+    } else {
+        TRUE
+    }
+}
+
+dat_ab_d1_t1r <- dat_ab_d1_t1[, sapply(dat_ab_d1_t1, summer)]
+dat_ab_d1_t5r <- dat_ab_d1_t5[, sapply(dat_ab_d1_t5, summer)]
+dat_ab_d1_t15r <- dat_ab_d1_t15[, sapply(dat_ab_d1_t15, summer)]
+dat_ab_d1_t30r <- dat_ab_d1_t30[, sapply(dat_ab_d1_t30, summer)]
+dat_ab_d3_t1r <- dat_ab_d3_t1[, sapply(dat_ab_d3_t1, summer)]
+dat_ab_d3_t5r <- dat_ab_d3_t5[, sapply(dat_ab_d3_t5, summer)]
+dat_ab_d3_t15r <- dat_ab_d3_t15[, sapply(dat_ab_d3_t15, summer)]
+dat_ab_d3_t30r <- dat_ab_d3_t30[, sapply(dat_ab_d3_t30, summer)]
+dat_ab_d5_t1r <- dat_ab_d5_t1[, sapply(dat_ab_d5_t1, summer)]
+dat_ab_d5_t5r <- dat_ab_d5_t5[, sapply(dat_ab_d5_t5, summer)]
+dat_ab_d5_t15r <- dat_ab_d5_t15[, sapply(dat_ab_d5_t15, summer)]
+dat_ab_d5_t30r <- dat_ab_d5_t30[, sapply(dat_ab_d5_t30, summer)]
+
+dat_ac_d1_t1r <- dat_ac_d1_t1[, sapply(dat_ac_d1_t1, summer)]
+dat_ac_d1_t5r <- dat_ac_d1_t5[, sapply(dat_ac_d1_t5, summer)]
+dat_ac_d1_t15r <- dat_ac_d1_t15[, sapply(dat_ac_d1_t15, summer)]
+dat_ac_d1_t30r <- dat_ac_d1_t30[, sapply(dat_ac_d1_t30, summer)]
+dat_ac_d3_t1r <- dat_ac_d3_t1[, sapply(dat_ac_d3_t1, summer)]
+dat_ac_d3_t5r <- dat_ac_d3_t5[, sapply(dat_ac_d3_t5, summer)]
+dat_ac_d3_t15r <- dat_ac_d3_t15[, sapply(dat_ac_d3_t15, summer)]
+dat_ac_d3_t30r <- dat_ac_d3_t30[, sapply(dat_ac_d3_t30, summer)]
+dat_ac_d5_t1r <- dat_ac_d5_t1[, sapply(dat_ac_d5_t1, summer)]
+dat_ac_d5_t5r <- dat_ac_d5_t5[, sapply(dat_ac_d5_t5, summer)]
+dat_ac_d5_t15r <- dat_ac_d5_t15[, sapply(dat_ac_d5_t15, summer)]
+dat_ac_d5_t30r <- dat_ac_d5_t30[, sapply(dat_ac_d5_t30, summer)]
+
+dat_bc_d1_t1r <- dat_bc_d1_t1[, sapply(dat_bc_d1_t1, summer)]
+dat_bc_d1_t5r <- dat_bc_d1_t5[, sapply(dat_bc_d1_t5, summer)]
+dat_bc_d1_t15r <- dat_bc_d1_t15[, sapply(dat_bc_d1_t15, summer)]
+dat_bc_d1_t30r <- dat_bc_d1_t30[, sapply(dat_bc_d1_t30, summer)]
+dat_bc_d3_t1r <- dat_bc_d3_t1[, sapply(dat_bc_d3_t1, summer)]
+dat_bc_d3_t5r <- dat_bc_d3_t5[, sapply(dat_bc_d3_t5, summer)]
+dat_bc_d3_t15r <- dat_bc_d3_t15[, sapply(dat_bc_d3_t15, summer)]
+dat_bc_d3_t30r <- dat_bc_d3_t30[, sapply(dat_bc_d3_t30, summer)]
+dat_bc_d5_t1r <- dat_bc_d5_t1[, sapply(dat_bc_d5_t1, summer)]
+dat_bc_d5_t5r <- dat_bc_d5_t5[, sapply(dat_bc_d5_t5, summer)]
+dat_bc_d5_t15r <- dat_bc_d5_t15[, sapply(dat_bc_d5_t15, summer)]
+dat_bc_d5_t30r <- dat_bc_d5_t30[, sapply(dat_bc_d5_t30, summer)]
+```
+
+
+```{r}
+write.csv(dat_ab_d1_t1r, "./prepare_output/ab_d1_t1.csv", row.names = FALSE)
+write.csv(dat_ab_d1_t5r, "./prepare_output/ab_d1_t5.csv", row.names = FALSE)
+write.csv(dat_ab_d1_t15r, "./prepare_output/ab_d1_t15.csv", row.names = FALSE)
+write.csv(dat_ab_d1_t30r, "./prepare_output/ab_d1_t30.csv", row.names = FALSE)
+write.csv(dat_ac_d1_t1r, "./prepare_output/ac_d1_t1.csv", row.names = FALSE)
+write.csv(dat_ac_d1_t5r, "./prepare_output/ac_d1_t5.csv", row.names = FALSE)
+write.csv(dat_ac_d1_t15r, "./prepare_output/ac_d1_t15.csv", row.names = FALSE)
+write.csv(dat_ac_d1_t30r, "./prepare_output/ac_d1_t30.csv", row.names = FALSE)
+write.csv(dat_bc_d1_t1r, "./prepare_output/bc_d1_t1.csv", row.names = FALSE)
+write.csv(dat_bc_d1_t5r, "./prepare_output/bc_d1_t5.csv", row.names = FALSE)
+write.csv(dat_bc_d1_t15r, "./prepare_output/bc_d1_t15.csv", row.names = FALSE)
+write.csv(dat_bc_d1_t30r, "./prepare_output/bc_d1_t30.csv", row.names = FALSE)
+
+write.csv(dat_ab_d3_t1r, "./prepare_output/ab_d3_t1.csv", row.names = FALSE)
+write.csv(dat_ab_d3_t5r, "./prepare_output/ab_d3_t5.csv", row.names = FALSE)
+write.csv(dat_ab_d3_t15r, "./prepare_output/ab_d3_t15.csv", row.names = FALSE)
+write.csv(dat_ab_d3_t30r, "./prepare_output/ab_d3_t30.csv", row.names = FALSE)
+write.csv(dat_ac_d3_t1r, "./prepare_output/ac_d3_t1.csv", row.names = FALSE)
+write.csv(dat_ac_d3_t5r, "./prepare_output/ac_d3_t5.csv", row.names = FALSE)
+write.csv(dat_ac_d3_t15r, "./prepare_output/ac_d3_t15.csv", row.names = FALSE)
+write.csv(dat_ac_d3_t30r, "./prepare_output/ac_d3_t30.csv", row.names = FALSE)
+write.csv(dat_bc_d3_t1r, "./prepare_output/bc_d3_t1.csv", row.names = FALSE)
+write.csv(dat_bc_d3_t5r, "./prepare_output/bc_d3_t5.csv", row.names = FALSE)
+write.csv(dat_bc_d3_t15r, "./prepare_output/bc_d3_t15.csv", row.names = FALSE)
+write.csv(dat_bc_d3_t30r, "./prepare_output/bc_d3_t30.csv", row.names = FALSE)
+
+write.csv(dat_ab_d5_t1r, "./prepare_output/ab_d5_t1.csv", row.names = FALSE)
+write.csv(dat_ab_d5_t5r, "./prepare_output/ab_d5_t5.csv", row.names = FALSE)
+write.csv(dat_ab_d5_t15r, "./prepare_output/ab_d5_t15.csv", row.names = FALSE)
+write.csv(dat_ab_d5_t30r, "./prepare_output/ab_d5_t30.csv", row.names = FALSE)
+write.csv(dat_ac_d5_t1r, "./prepare_output/ac_d5_t1.csv", row.names = FALSE)
+write.csv(dat_ac_d5_t5r, "./prepare_output/ac_d5_t5.csv", row.names = FALSE)
+write.csv(dat_ac_d5_t15r, "./prepare_output/ac_d5_t15.csv", row.names = FALSE)
+write.csv(dat_ac_d5_t30r, "./prepare_output/ac_d5_t30.csv", row.names = FALSE)
+write.csv(dat_bc_d5_t1r, "./prepare_output/bc_d5_t1.csv", row.names = FALSE)
+write.csv(dat_bc_d5_t5r, "./prepare_output/bc_d5_t5.csv", row.names = FALSE)
+write.csv(dat_bc_d5_t15r, "./prepare_output/bc_d5_t15.csv", row.names = FALSE)
+write.csv(dat_bc_d5_t30r, "./prepare_output/bc_d5_t30.csv", row.names = FALSE)
+
+```
+
+
