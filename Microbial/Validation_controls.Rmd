@@ -1,0 +1,504 @@
+---
+title: "Validation_controls"
+output: html_document
+date: "2025-02-10"
+---
+
+Title: diversity metrics
+  Data: 16S sequencing - rarefied
+
+Included:
+  1. Load phyloseq object  ------------using phyloseq_coalescence_rarefied_removed_outliers.Rdata
+  2. Check controls diversity (plot)
+  3. Calculate diversity metrics and create a dataframe containing the metrics and the metadata 
+      - include c("Observed", "Chao1", "ACE", "Shannon", "Simpson", "InvSimpson", "Fisher").
+  4. Subset per soil set
+  5. Plot Chao1
+  6. Plot Shannon
+  7. Subset by soil set & diversity for *stats
+  8. Creating anova function for each variable 
+      - Chao1 and Shannon
+  9. Anova Observed
+  10. Anova Chao
+  11. Anova Shannon
+  12. Anova evenness
+  - Clean the global environment
+  13. Pcoa
+  14. VennDiagram
+  
+---
+#0.Load library
+```{r}
+library(phyloseq)
+library(ggplot2)
+library(agricolae)
+library(see)
+```
+#1. Load phyloseq object
+```{r}
+load("./phyloseq.Rdata")
+dat <- ps_rare2
+```
+#2. extract edit
+```{r}
+dat.controls <- subset_samples(dat, Soil %in% c("A", "B","C"))
+dat.t1 <- subset_samples(dat, Time %in% c("T1"))
+dat.t1.a <- subset_samples(dat.t1, Soil %in% c("A"))
+dat.t1.b <- subset_samples(dat.t1, Soil %in% c("B"))
+dat.t1.c <- subset_samples(dat.t1, Soil %in% c("C"))
+```
+
+#3. Calculate diversity metrics and create a dataframe containing the metrics and the metadata 
+H <- alpha_diversity$Shannon
+S1 <- alpha_diversity$Observed
+S <- log(S1)
+evenness <- H/S
+evenness
+alpha_diversity$Evenness = evenness
+alpha_diversity
+
+```{r}
+dat.c.rich <- estimate_richness(dat.controls, split = TRUE, measures = NULL)
+
+dat.c.rich$S <- log(dat.c.rich$Observed)
+dat.c.rich$evenness <- dat.c.rich$Shannon/dat.c.rich$S
+
+dat.c.rich$ID <- row.names(dat.c.rich)
+dat.c.rich$ID <- gsub("\\.", "-", dat.c.rich$ID)
+
+#load metadata
+metadata=read.csv("~/Desktop/GitProjects/Coalescence/16s/data/dada2_output/metadata_coalescence.csv", header = TRUE )
+metadata <- metadata[-c(433:480), ] #remove the samples not used
+
+dat.c.rich.id <- merge(dat.c.rich, metadata, by= "ID")
+
+```
+
+#4. Subset per soil set
+```{r}
+dat.c.rich.id
+#set the order of factors levels
+dat.c.rich.id$Soil <- factor(dat.c.rich.id$Soil, levels = c("A", "B", "C"))
+dat.c.rich.id$Time <- factor(dat.c.rich.id$Time, levels = c("T1", "T5", "T15", "T30"))
+rich_t1 <- subset(dat.c.rich.id, Time %in% c("T1")) 
+
+```
+
+#5. Plots
+```{r}
+ggplot(dat.c.rich.id, aes(x=Diversity, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Observed controls")
+
+ggplot(dat.c.rich.id, aes(x=Diversity, y=Chao1, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Chao1 controls")
+
+ggplot(dat.c.rich.id, aes(x=Diversity, y=Shannon, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Shannon controls")
+
+ggplot(dat.c.rich.id, aes(x=Diversity, y=evenness, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Evenness controls")
+
+#only time1
+ggplot(rich_t1 , aes(x=Diversity, y=Observed, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Observed controls t1")
+
+ggplot(rich_t1 , aes(x=Diversity, y=Chao1, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Chao1 controls t1")
+
+ggplot(rich_t1, aes(x=Diversity, y=Shannon, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Shannon controls t1")
+
+ggplot(rich_t1, aes(x=Diversity, y=evenness, color=Soil, fill=Soil)) + geom_boxplot() + facet_grid(~Soil, scales= "free") + geom_point(position=position_jitterdodge(),alpha=0.3) +
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Evenness controls t1")
+
+
+
+```
+
+```{r}
+ggplot(rich_t1, aes(x=Diversity, y=Observed, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.1, alpha=.8, position = position_nudge(x = -0.1))+
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + 
+  ylim(200, 1000) + facet_grid(~Soil, scales= "free")+
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Observed ab") 
+
+ggplot(rich_t1, aes(x=Diversity, y=Chao1, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.1, alpha=.8, position = position_nudge(x = -0.1))+
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + 
+  ylim(200, 1000)+ facet_grid(~Soil, scales= "free")+
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Chao1 ab") 
+
+ggplot(rich_t1, aes(x=Diversity, y=Shannon, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.1, alpha=.8, position = position_nudge(x = -0.1))+
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + 
+  ylim(3.8, 6) + facet_grid(~Soil, scales= "free")+
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("Shannon ab") 
+
+ggplot(rich_t1, aes(x=Diversity, y=evenness, color=Soil, fill=Soil)) +  
+  geom_violinhalf(alpha=.8, position = position_nudge(x = .1), trim = FALSE)+
+  geom_boxplot(width = 0.1, alpha=.8, position = position_nudge(x = -0.1))+
+  geom_point(position = position_nudge(x = -0.1), alpha=0.6) + 
+  ylim(.65, .94) + facet_grid(~Soil, scales= "free")+
+  scale_color_manual(values=c('red','#FFCC00', 'blue')) +
+  scale_fill_manual(values=c('red','#FFCC00', 'blue')) +
+  theme_bw() + ggtitle("evenness ab") 
+```
+
+
+#7. Subset by soil set + diversity for stats
+```{r}
+dat.c.rich.id #total - complete
+
+#Per set
+rich_a <- subset(dat.c.rich.id, Soil %in% c("A")) 
+rich_b <- subset(dat.c.rich.id, Soil %in% c("B"))
+rich_c <- subset(dat.c.rich.id, Soil %in% c("C"))
+
+rich_a_t1 <- subset(rich_a, Time %in% c("T1")) 
+rich_b_t1 <- subset(rich_b, Time %in% c("T1")) 
+rich_c_t1 <- subset(rich_c, Time %in% c("T1")) 
+
+```
+
+#8. Creating anova function for each variable 
+```{r}
+anova.obs <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil, Diversity))
+  x.aov <- aov(data = x, Observed ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+
+anova.chao1 <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil, Diversity))
+  x.aov <- aov(data = x, Chao1 ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+  
+anova.shannon <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil,Diversity))
+  x.aov <- aov(data = x, Shannon ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+
+anova.evenness <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Soil,Diversity))
+  x.aov <- aov(data = x, evenness ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+
+```
+#9. Anova Observed
+```{r}
+
+obs_a <- anova.obs(rich_a)
+obs_b <- anova.obs(rich_b)
+obs_c <- anova.obs(rich_c)
+obs_a_t1 <- anova.obs(rich_a_t1)
+obs_b_t1 <- anova.obs(rich_b_t1)
+obs_c_t1 <- anova.obs(rich_c_t1)
+obs_a
+obs_b
+obs_c
+obs_a_t1
+obs_b_t1
+obs_c_t1
+
+aov_obs_a_t1 <- aov(data=rich_a_t1, Observed~Diversity)
+tukey_obs_a_t1 <- TukeyHSD(aov_obs_a_t1, conf.level = 0.95)
+tukey_obs_a_t1
+
+aov_obs_b_t1 <- aov(data=rich_b_t1, Observed~Diversity)
+tukey_obs_b_t1 <- TukeyHSD(aov_obs_b_t1, conf.level = 0.95)
+tukey_obs_b_t1
+
+aov_obs_c_t1 <- aov(data=rich_c_t1, Observed~Diversity)
+tukey_obs_c_t1 <- TukeyHSD(aov_obs_c_t1, conf.level = 0.95)
+tukey_obs_c_t1
+
+```
+
+#10. Anova Chao1
+```{r}
+chao1_a <- anova.chao1(rich_a)
+chao1_b <- anova.chao1(rich_b)
+chao1_c <- anova.chao1(rich_c)
+chao1_a_t1 <- anova.chao1(rich_a_t1)
+chao1_b_t1 <- anova.chao1(rich_b_t1)
+chao1_c_t1 <- anova.chao1(rich_c_t1)
+chao1_a
+chao1_b
+chao1_c
+
+
+aov_chao_a_t1 <- aov(data=rich_a_t1, Chao1~Diversity)
+tukey_chao_a_t1 <- TukeyHSD(aov_chao_a_t1, conf.level = 0.95)
+
+aov_chao_b_t1 <- aov(data=rich_b_t1, Chao1~Diversity)
+tukey_chao_b_t1 <- TukeyHSD(aov_chao_b_t1, conf.level = 0.95)
+
+aov_chao_c_t1 <- aov(data=rich_c_t1, Chao1~Diversity)
+tukey_chao_c_t1 <- TukeyHSD(aov_chao_c_t1, conf.level = 0.95)
+
+chao1_a_t1
+tukey_chao_a_t1
+chao1_b_t1
+tukey_chao_b_t1
+chao1_c_t1
+tukey_chao_c_t1
+```
+
+#11. Anova Shannon
+```{r}
+shannon_a <- anova.shannon(rich_a)
+shannon_b <- anova.shannon(rich_b)
+shannon_c <- anova.shannon(rich_c)
+shannon_a_t1 <- anova.shannon(rich_a_t1)
+shannon_b_t1 <- anova.shannon(rich_b_t1)
+shannon_c_t1 <- anova.shannon(rich_c_t1)
+shannon_a
+shannon_b
+shannon_c
+
+aov_shannon_a_t1 <- aov(data=rich_a_t1, Shannon~Diversity)
+tukey_shannon_a_t1 <- TukeyHSD(aov_shannon_a_t1, conf.level = 0.95)
+
+aov_shannon_b_t1 <- aov(data=rich_b_t1, Shannon~Diversity)
+tukey_shannon_b_t1 <- TukeyHSD(aov_shannon_b_t1, conf.level = 0.95)
+
+aov_shannon_c_t1 <- aov(data=rich_c_t1, Shannon~Diversity)
+tukey_shannon_c_t1 <- TukeyHSD(aov_shannon_c_t1, conf.level = 0.95)
+
+
+shannon_a_t1
+shannon_b_t1
+shannon_c_t1
+```
+#12. Anova evenness
+```{r}
+evenness_a <- anova.evenness(rich_a)
+evenness_b <- anova.evenness(rich_b)
+evenness_c <- anova.evenness(rich_c)
+evenness_a_t1 <- anova.evenness(rich_a_t1)
+evenness_b_t1 <- anova.evenness(rich_b_t1)
+evenness_c_t1 <- anova.evenness(rich_c_t1)
+evenness_a
+evenness_b
+evenness_c
+evenness_a_t1
+evenness_b_t1
+evenness_c_t1
+
+
+aov_evenness_a_t1 <- aov(data=rich_a_t1, evenness~Diversity)
+tukey_evenness_a_t1 <- TukeyHSD(aov_evenness_a_t1, conf.level = 0.95)
+
+aov_evenness_b_t1 <- aov(data=rich_b_t1, evenness~Diversity)
+tukey_evenness_b_t1 <- TukeyHSD(aov_evenness_b_t1, conf.level = 0.95)
+
+aov_evenness_c_t1 <- aov(data=rich_c_t1, evenness~Diversity)
+tukey_evenness_c_t1 <- TukeyHSD(aov_evenness_c_t1, conf.level = 0.95)
+
+```
+
+# Clean the global environment
+```{r}
+rm(tukey_chao_a_t1, tukey_chao_b_t1, tukey_chao_c_t1, tukey_evenness_b_t1, tukey_evenness_c_t1, tukey_evenness_a_t1, tukey_shannon_a_t1, tukey_shannon_b_t1, tukey_shannon_c_t1, chao1_a, chao1_b, chao1_c, chao1_a_t1, chao1_b_t1, chao1_c_t1, shannon_a, shannon_b, shannon_c, shannon_a_t1, shannon_b_t1, shannon_c_t1, evenness_a, evenness_b, evenness_c, evenness_a_t1, evenness_b_t1, evenness_c_t1, aov_chao_a_t1, aov_chao_b_t1, aov_chao_c_t1, aov_evenness_a_t1, aov_evenness_b_t1, aov_evenness_c_t1, aov_shannon_a_t1, aov_shannon_b_t1, aov_shannon_c_t1)
+```
+#13. Pcoa
+Subset
+```{r}
+dat.controls.t1 <- subset_samples(dat, Soil %in% c("A", "B","C")& Time %in% c("T1"))
+
+dat.controls.t1.d1 <- subset_samples(dat.controls.t1, Diversity %in% c("1"))
+dat.controls.t1.d3 <- subset_samples(dat.controls.t1, Diversity %in% c("3"))
+dat.controls.t1.d5 <- subset_samples(dat.controls.t1, Diversity %in% c("5"))
+
+```
+function
+```{r}
+ord_pcoa_3 <- function (x) {
+  obj <- x
+  #Transform to even sampling depth.
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color="Soil", shape = "Time" #, label = "Rep") +
+  )+
+scale_color_manual(values=c('red', '#FFCC00', 'blue')) +
+    scale_fill_manual(values=c('red', '#FFCC00', 'blue')) + theme_bw()
+  p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+  return(p3 + geom_point(size=6) + geom_polygon(aes(fill=Soil))+ facet_wrap(~Diversity)+ ggtitle("PCoA Split by diversity"))
+}
+
+ord_pcoa_2 <- function (x) {
+  obj <- x
+  #Transform to even sampling depth.
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color="Soil", shape = "Diversity" #, label = "Rep") +
+  )+
+scale_color_manual(values=c('red', '#FFCC00', 'blue')) +
+    scale_fill_manual(values=c('red', '#FFCC00', 'blue')) + theme_bw()
+  p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+  return(p3 + geom_point(size=5) + geom_polygon(aes(fill=Soil))+ facet_wrap(~Soil)+ ggtitle("PCoA Split by diversity"))
+}
+
+ord_pcoa_4 <- function (x) {
+  obj <- x
+  #Transform to even sampling depth.
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color="Soil", shape = "Diversity" #, label = "Rep") +
+  )+
+scale_color_manual(values=c('red', '#FFCC00', 'blue')) +
+    scale_fill_manual(values=c('red', '#FFCC00', 'blue')) + theme_bw()
+  p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+  return(p3 + geom_point(size=3) + geom_polygon(aes(fill=Soil))+ ggtitle("PCoA"))
+}
+
+ord_pcoa_a <- function (x) {
+  obj <- x
+  #Transform to even sampling depth.
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color="Soil", shape = "Diversity" #, label = "Rep") +
+  )+
+scale_color_manual(values=c('red')) +
+    scale_fill_manual(values=c('red')) + theme_bw()
+  p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+  return(p3 + geom_point(size=3) + geom_polygon(aes(fill=Soil))+ ggtitle("PCoA"))
+}
+
+ord_pcoa_b <- function (x) {
+  obj <- x
+  #Transform to even sampling depth.
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color="Soil", shape = "Diversity" #, label = "Rep") +
+  )+
+scale_color_manual(values=c( '#FFCC00')) +
+    scale_fill_manual(values=c('#FFCC00')) + theme_bw()
+  p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+  return(p3 + geom_point(size=3) + geom_polygon(aes(fill=Soil))+ ggtitle("PCoA"))
+}
+
+ord_pcoa_c <- function (x) {
+  obj <- x
+  #Transform to even sampling depth.
+  obj = transform_sample_counts(obj, function(x) 1E6 * x/sum(x))
+  obj.ord <- ordinate(obj, method= "PCoA",  distance = "bray")
+  p3 = plot_ordination(obj, obj.ord, type = "samples", color="Soil", shape = "Diversity" #, label = "Rep") +
+  )+
+scale_color_manual(values=c('blue')) +
+    scale_fill_manual(values=c('blue')) + theme_bw()
+  p3+geom_polygon(aes(fill=Soil)) + geom_point(size=1) + ggtitle("xx")
+  return(p3 + geom_point(size=3) + geom_polygon(aes(fill=Soil))+ ggtitle("PCoA"))
+}
+```
+
+plot
+```{r}
+ord_controls <- ord_pcoa_3(dat.controls.t1)
+ord_controls
+ord_controls_d1 <- ord_pcoa_3(dat.controls.t1.d1)
+ord_controls_d3 <- ord_pcoa_3(dat.controls.t1.d3)
+ord_controls_d5 <- ord_pcoa_3(dat.controls.t1.d5)
+
+ord_controls_d1
+ord_controls_d3
+ord_controls_d5
+
+ord_controls2 <- ord_pcoa_2(dat.controls.t1)
+ord_controls2
+
+ord_controls_d1_2 <- ord_pcoa_2(dat.controls.t1.d1)
+ord_controls_d3_2 <- ord_pcoa_2(dat.controls.t1.d3)
+ord_controls_d5_2 <- ord_pcoa_2(dat.controls.t1.d5)
+
+ord_controls_all <- ord_pcoa_4(dat.controls.t1)
+ord_controls_all
+
+ord_t1_a <- ord_pcoa_a(dat.t1.a)
+ord_t1_b <- ord_pcoa_b(dat.t1.b)
+ord_t1_c <- ord_pcoa_c(dat.t1.c)
+
+ord_t1_a
+ord_t1_b
+ord_t1_c
+```
+
+#14. VennDiagram
+```{r}
+library(ggVennDiagram)
+library(MicrobiotaProcess)
+vennlist_don.d1.t1 <- get_vennlist(obj=dat.controls.t1.d1, factorNames="Soil")
+vennlist_don.d3.t1 <- get_vennlist(obj=dat.controls.t1.d3, factorNames="Soil")
+vennlist_don.d5.t1 <- get_vennlist(obj=dat.controls.t1.d5, factorNames="Soil")
+
+venn_don.d1.t1 <- Venn(vennlist_don.d1.t1)
+venn_don.d3.t1 <- Venn(vennlist_don.d3.t1)
+venn_don.d5.t1 <- Venn(vennlist_don.d5.t1)
+
+table_don.d1.t1 <- process_data(venn_don.d1.t1)
+table_don.d3.t1 <- process_data(venn_don.d3.t1)
+table_don.d5.t1 <- process_data(venn_don.d5.t1)
+```
+
+function
+```{r}
+vennplot_don <- function(x){
+  ggplot() +
+  # 1. region count layer
+  geom_sf(aes(fill = count), data = venn_region(x)) +
+  # 2. set edge layer
+  geom_sf(aes(color = name), data = venn_setedge(x), show.legend = TRUE, size = 15) +
+  # 3. set label layer
+  geom_sf_text(aes(label = name), data = venn_setlabel(x)) +
+  # 4. region label layer
+  geom_sf_label(aes(label = paste0(count, " (", scales::percent(count/sum(count), accuracy = 2), ")")), 
+                data = venn_region(x),
+                size = 3) +
+  scale_fill_gradient(low = "white", high = "gray")+
+  scale_color_manual(values = c("A" = "red","B" ="#FFCC00",'C' = 'blue'))+
+  theme_void()
+}
+```
+
+Plot
+```{r}
+vennplot_don(table_don.d1.t1) + ggtitle("donors d1 t1")
+vennplot_don(table_don.d3.t1) + ggtitle("donors d3 t1")
+vennplot_don(table_don.d5.t1) + ggtitle("donors d5 t1")
+```
