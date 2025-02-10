@@ -1,0 +1,487 @@
+---
+title: "Soil_anova_controls"
+output: html_document
+date: "2025-02-10"
+---
+
+Input data
+```{r}
+chemistry = read.csv("./soil_properties.csv", header = T)
+chemistry = data.frame(chemistry)
+
+```
+
+Ph
+```{r}
+head(chemistry)
+anova_pH <- aov(data = chemistry, pH ~ soil)
+anova_pH
+summary(anova_pH)
+#Normality - shapiro-wilk's test
+shapiro.test(log(log(chemistry$pH)))
+
+library("car")
+
+qqPlot(anova_pH$residuals) #Plot
+shapiro.test(anova_pH$residuals)
+#Homogenity test
+bartlett.test(pH ~ soil, data = chemistry)
+leveneTest(pH ~ soil, data = chemistry)
+
+summary(anova_pH)
+TukeyHSD(anova_pH, conf.level = 0.95)
+
+```
+Phosphorus
+```{r}
+anova_phos <- aov(data = chemistry, Phosphorus ~ soil)
+anova_phos
+summary(anova_phos)
+#Normality - shapiro-wilk's test
+shapiro.test(log(chemistry$Phosphorus))
+
+qqPlot(anova_phos$residuals)
+shapiro.test(anova_phos$residuals)
+#Homogenity test
+bartlett.test(log(Phosphorus) ~ soil, data = chemistry)
+leveneTest(Phosphorus ~ soil, data = chemistry)
+
+summary(anova_phos)
+TukeyHSD(anova_phos, conf.level = 0.95)
+```
+Potassium
+```{r}
+anova_potassium <- aov(data = chemistry, Potassium ~ soil)
+anova_potassium
+summary(anova_potassium)
+#Normality - shapiro-wilk's test
+shapiro.test(scale(chemistry$Potassium))
+
+qqPlot(anova_potassium$residuals)
+shapiro.test(anova_potassium$residuals)
+#Homogenity test
+bartlett.test(Potassium ~ soil, data = chemistry)
+#leveneTest(Potassium ~ soil, data = chemistry)
+
+summary(anova_potassium)
+TukeyHSD(anova_potassium, conf.level = 0.95)
+
+```
+Magnesium
+```{r}
+anova_mg <- aov(data = chemistry, Magnesium ~ soil)
+anova_mg
+summary(anova_mg)
+#Normality - shapiro-wilk's test
+qqPlot(anova_mg$residuals)
+shapiro.test(anova_mg$residuals)
+#Homogenity test
+#bartlett.test(Magnesium ~ soil, data = chemistry)
+leveneTest(Magnesium ~ soil, data = chemistry)
+
+summary(anova_mg)
+TukeyHSD(anova_mg, conf.level = 0.95)
+```
+Calcium
+```{r}
+anova_ca <- aov(data = chemistry, Calcium ~ soil)
+anova_ca
+summary(anova_ca)
+#Normality - shapiro-wilk's test
+qqPlot(anova_ca$residuals)
+shapiro.test(anova_ca$residuals)
+#Homogenity test
+bartlett.test(Calcium ~ soil, data = chemistry)
+leveneTest(Calcium ~ soil, data = chemistry)
+
+summary(anova_ca)
+TukeyHSD(anova_ca, conf.level = 0.95)
+```
+Acidity index
+```{r}
+anova_acidity_index <- aov(data = chemistry, Acidity_index ~ soil)
+anova_acidity_index
+summary(anova_acidity_index)
+#Normality - shapiro-wilk's test
+qqPlot(anova_acidity_index$residuals)
+shapiro.test(anova_acidity_index$residuals)
+#Homogenity test
+#bartlett.test(Acidity_index ~ soil, data = chemistry)
+leveneTest(Acidity_index~ soil, data = chemistry)
+
+summary(anova_acidity_index)
+TukeyHSD(anova_acidity_index, conf.level = 0.95)
+```
+CEC
+```{r}
+anova_cec <- aov(data = chemistry, CEC ~ soil)
+anova_cec
+summary(anova_cec)
+#Normality - shapiro-wilk's test
+qqPlot(anova_cec$residuals)
+shapiro.test(anova_cec$residuals)
+#Homogenity test
+bartlett.test(CEC ~ soil, data = chemistry)
+leveneTest(CEC ~ soil, data = chemistry)
+
+summary(anova_cec)
+TukeyHSD(anova_cec, conf.level = 0.95)
+```
+K percent saturation
+```{r}
+anova_K_sat_cec <- aov(data = chemistry, K_percent_saturation_of_CEC ~ soil)
+anova_K_sat_cec
+summary(anova_K_sat_cec)
+#Normality - shapiro-wilk's test
+qqPlot(anova_K_sat_cec$residuals)
+shapiro.test(anova_K_sat_cec$residuals)
+#Homogenity test
+#bartlett.test(Magnesium ~ soil, data = chemistry)
+leveneTest(K_percent_saturation_of_CEC ~ soil, data = chemistry)
+
+summary(anova_K_sat_cec)
+TukeyHSD(anova_K_sat_cec, conf.level = 0.95)
+```
+Mg percent saturation of CEC
+```{r}
+anova_Mg_sat_cec <- aov(data = chemistry, Mg_percent_saturation_of_CEC ~ soil)
+anova_Mg_sat_cec
+summary(anova_Mg_sat_cec)
+#Normality - shapiro-wilk's test
+qqPlot(anova_Mg_sat_cec$residuals)
+shapiro.test(anova_Mg_sat_cec$residuals)
+#Homogenity test
+bartlett.test(Mg_percent_saturation_of_CEC ~ soil, data = chemistry)
+leveneTest(Mg_percent_saturation_of_CEC ~ soil, data = chemistry)
+
+summary(anova_Mg_sat_cec)
+TukeyHSD(anova_Mg_sat_cec, conf.level = 0.95)
+
+```
+Ca percent saturation
+```{r}
+anova_Ca_sat_cec <- aov(data = chemistry, Ca_percent_saturation_of_CEC ~ soil)
+anova_Ca_sat_cec
+summary(anova_Ca_sat_cec)
+#Normality - shapiro-wilk's test
+qqPlot(anova_Ca_sat_cec$residuals)
+shapiro.test(anova_Ca_sat_cec$residuals)
+#Homogenity test
+bartlett.test(Ca_percent_saturation_of_CEC ~ soil, data = chemistry)
+leveneTest(Ca_percent_saturation_of_CEC ~ soil, data = chemistry)
+
+summary(anova_Ca_sat_cec)
+TukeyHSD(anova_Ca_sat_cec, conf.level = 0.95)
+
+```
+Zinc
+```{r}
+anova_zinc <- aov(data = chemistry, Zinc ~ soil)
+anova_zinc
+summary(anova_zinc)
+#Normality - shapiro-wilk's test
+qqPlot(anova_zinc$residuals)
+shapiro.test(anova_zinc$residuals)
+#Homogenity test
+bartlett.test(Zinc ~ soil, data = chemistry)
+leveneTest(log(Zinc) ~ soil, data = chemistry)
+
+summary(anova_zinc)
+TukeyHSD(anova_zinc, conf.level = 0.95)
+```
+Copper 
+```{r}
+anova_copper <- aov(data = chemistry, Copper ~ soil)
+anova_copper
+summary(anova_copper)
+#Normality - shapiro-wilk's test
+qqPlot(anova_copper$residuals)
+shapiro.test(anova_copper$residuals)
+#Homogenity test
+bartlett.test(Copper ~ soil, data = chemistry)
+leveneTest(Copper ~ soil, data = chemistry)
+
+summary(anova_copper)
+TukeyHSD(anova_copper, conf.level = 0.95)
+```
+Sulfur
+```{r}
+anova_sulfur <- aov(data = chemistry, Sulfur ~ soil)
+anova_sulfur
+summary(anova_sulfur)
+#Normality - shapiro-wilk's test
+qqPlot(anova_sulfur$residuals)
+shapiro.test(anova_sulfur$residuals)
+#Homogenity test
+bartlett.test(Sulfur ~ soil, data = chemistry)
+leveneTest(Sulfur ~ soil, data = chemistry)
+
+summary(anova_sulfur)
+TukeyHSD(anova_sulfur, conf.level = 0.95)
+```
+Percent OM
+```{r}
+anova_OM <- aov(data = chemistry, Percent_Organic_Matter ~ soil)
+anova_OM
+summary(anova_OM)
+#Normality - shapiro-wilk's test
+qqPlot(anova_OM$residuals)
+shapiro.test(anova_OM$residuals)
+#Homogenity test
+bartlett.test(Percent_Organic_Matter ~ soil, data = chemistry)
+leveneTest(Percent_Organic_Matter ~ soil, data = chemistry)
+
+summary(anova_OM)
+TukeyHSD(anova_OM, conf.level = 0.95)
+```
+Nitrate nitrogen
+```{r}
+anova_nitrate <- aov(data = chemistry, log(log(Nitrate_nitrogen+1)) ~ soil)
+anova_nitrate
+summary(anova_nitrate)
+#Normality - shapiro-wilk's test
+qqPlot(anova_nitrate$residuals)
+shapiro.test(anova_nitrate$residuals)
+#Homogenity test
+bartlett.test(log(Nitrate_nitrogen) ~ soil, data = chemistry)
+#leveneTest(Percent_Organic_Matter ~ soil, data = chemistry)
+
+summary(anova_nitrate)
+TukeyHSD(anova_nitrate, conf.level = 0.95)
+```
+Soluble salts 
+```{r}
+anova_sol_salts <- aov(data = chemistry, log(Soluble_Salts) ~ soil)
+anova_sol_salts
+summary(anova_sol_salts)
+
+#Normality - shapiro-wilk's test
+qqPlot(anova_sol_salts$residuals)
+shapiro.test(anova_sol_salts$residuals)
+#Homogenity test
+bartlett.test(log(Soluble_Salts) ~ soil, data = chemistry)
+leveneTest(log(Soluble_Salts) ~ soil, data = chemistry)
+
+summary(anova_sol_salts)
+TukeyHSD(anova_sol_salts, conf.level = 0.95)
+```
+Ammonium nitrogen
+```{r}
+anova_ammonium <- aov(data = chemistry, Ammonium_nitrogen ~ soil)
+anova_ammonium
+summary(anova_ammonium)
+#Normality - shapiro-wilk's test
+qqPlot(anova_ammonium$residuals)
+shapiro.test(anova_ammonium$residuals)
+#Homogenity test
+bartlett.test(Ammonium_nitrogen ~ soil, data = chemistry)
+leveneTest(log(Soluble_Salts) ~ soil, data = chemistry)
+
+summary(anova_ammonium)
+TukeyHSD(anova_ammonium, conf.level = 0.95)
+
+
+```
+Total N percent
+```{r}
+anova_total_N <- aov(data = chemistry, Total_N_Percent ~ soil)
+anova_total_N
+summary(anova_total_N)
+
+#Normality - shapiro-wilk's test
+qqPlot(anova_total_N$residuals)
+shapiro.test(anova_total_N$residuals)
+#Homogenity test
+bartlett.test(Total_N_Percent ~ soil, data = chemistry)
+leveneTest(Total_N_Percent ~ soil, data = chemistry)
+
+summary(anova_total_N)
+TukeyHSD(anova_total_N, conf.level = 0.95)
+```
+Total C percent 
+```{r}
+anova_total_C <- aov(data = chemistry, Total_C_percent ~ soil)
+anova_total_C
+summary(anova_total_C)
+#Normality - shapiro-wilk's test
+qqPlot(anova_total_C$residuals)
+shapiro.test(anova_total_C$residuals)
+
+#Homogenity test
+bartlett.test(Total_C_percent ~ soil, data = chemistry)
+leveneTest(Total_N_Percent ~ soil, data = chemistry)
+
+summary(anova_total_C)
+TukeyHSD(anova_total_C, conf.level = 0.95)
+
+
+car::boxCoxVariable(chemistry$Total_C_percent)
+```
+Sand percent
+```{r}
+anova_sand <- aov(data = chemistry, Sand_percent ~ soil)
+anova_sand
+summary(anova_sand)
+#Normality - shapiro-wilk's test
+qqPlot(anova_sand$residuals)
+shapiro.test(anova_sand$residuals)
+#Homogenity test
+bartlett.test(Sand_percent ~ soil, data = chemistry)
+#leveneTest(Total_N_Percent ~ soil, data = chemistry)
+
+summary(anova_sand)
+TukeyHSD(anova_sand, conf.level = 0.95)
+
+```
+Silt percent
+```{r}
+anova_silt <- aov(data = chemistry, Silt_percent ~ soil)
+anova_silt
+summary(anova_silt)
+shapiro.test(anova_silt$residuals)
+#Normality - shapiro-wilk's test
+qqPlot(anova_silt$residuals)
+shapiro.test(anova_silt$residuals)
+#Homogenity test
+bartlett.test(Silt_percent ~ soil, data = chemistry)
+leveneTest(Silt_percent ~ soil, data = chemistry)
+
+summary(anova_silt)
+TukeyHSD(anova_silt, conf.level = 0.95)
+
+
+```
+Clay percent
+```{r}
+anova_clay <- aov(data = chemistry, Clay_percent ~ soil)
+anova_clay
+summary(anova_clay)
+#Normality - shapiro-wilk's test
+qqPlot(anova_clay$residuals)
+shapiro.test(anova_clay$residuals)
+#Homogenity test
+bartlett.test(Clay_percent ~ soil, data = chemistry)
+#leveneTest(Total_N_Percent ~ soil, data = chemistry)
+
+summary(anova_clay)
+TukeyHSD(anova_clay, conf.level = 0.95)
+
+```
+Gravel percent retained
+```{r}
+anova_gravel_retained <- aov(data = chemistry, Gravel_percent_Retained ~ soil)
+anova_gravel_retained
+summary(anova_gravel_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_gravel_retained$residuals)
+shapiro.test(anova_gravel_retained$residuals)
+#Homogenity test
+bartlett.test(Gravel_percent_Retained ~ soil, data = chemistry)
+leveneTest(Gravel_percent_Retained ~ soil, data = chemistry)
+
+summary(anova_gravel_retained)
+TukeyHSD(anova_gravel_retained, conf.level = 0.95)
+
+
+
+shapiro.test(anova_gravel_retained$residuals)
+```
+Very coarse sand percent retained
+```{r}
+anova_very_coarse_sand_retained <- aov(data = chemistry, log(Very_Coarse_Sand_percent_Retained) ~ soil)
+anova_very_coarse_sand_retained
+summary(anova_very_coarse_sand_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_very_coarse_sand_retained$residuals)
+shapiro.test(anova_very_coarse_sand_retained$residuals)
+#Homogenity test
+bartlett.test(log(Very_Coarse_Sand_percent_Retained) ~ soil, data = chemistry)
+#leveneTest(Total_N_Percent ~ soil, data = chemistry)
+
+summary(anova_very_coarse_sand_retained)
+TukeyHSD(anova_very_coarse_sand_retained, conf.level = 0.95)
+
+
+```
+Coarse sand percent retained 
+```{r}
+anova_coarse_sand_retained <- aov(data = chemistry, log(Coarse_Sand_percent_Retained) ~ soil)
+anova_coarse_sand_retained
+summary(anova_coarse_sand_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_coarse_sand_retained$residuals)
+shapiro.test(anova_coarse_sand_retained$residuals)
+#Homogenity test
+bartlett.test(log(Coarse_Sand_percent_Retained) ~ soil, data = chemistry)
+#leveneTest(Total_N_Percent ~ soil, data = chemistry)
+
+summary(anova_coarse_sand_retained)
+TukeyHSD(anova_coarse_sand_retained, conf.level = 0.95)
+
+```
+Medium sand percent retained 
+```{r}
+anova_med_sand_retained <- aov(data = chemistry, Medium_Sand_percent_Retained ~ soil)
+anova_med_sand_retained
+summary(anova_med_sand_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_med_sand_retained$residuals)
+shapiro.test(anova_med_sand_retained$residuals)
+#Homogenity test
+bartlett.test(Medium_Sand_percent_Retained ~ soil, data = chemistry)
+leveneTest(Medium_Sand_percent_Retained ~ soil, data = chemistry)
+
+summary(anova_med_sand_retained)
+TukeyHSD(anova_med_sand_retained, conf.level = 0.95)
+
+```
+Fine Sand percent retained
+```{r}
+anova_fine_sand_retained <- aov(data = chemistry, Fine_Sand_percent_Retained ~ soil)
+anova_fine_sand_retained
+summary(anova_fine_sand_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_fine_sand_retained$residuals)
+shapiro.test(anova_fine_sand_retained$residuals)
+#Homogenity test
+bartlett.test(log(log(Fine_Sand_percent_Retained)) ~ soil, data = chemistry)
+leveneTest(log(log(Fine_Sand_percent_Retained)) ~ soil, data = chemistry)
+
+summary(anova_fine_sand_retained)
+TukeyHSD(anova_fine_sand_retained, conf.level = 0.95)
+
+```
+VEry fine sand percent retained 
+```{r}
+anova_very_fine_sand_retained <- aov(data = chemistry, Very_Fine_Sand_percent_Retained ~ soil)
+anova_very_fine_sand_retained
+summary(anova_very_fine_sand_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_very_fine_sand_retained$residuals)
+shapiro.test(anova_very_fine_sand_retained$residuals)
+#Homogenity test
+bartlett.test(Very_Fine_Sand_percent_Retained ~ soil, data = chemistry)
+leveneTest(Very_Fine_Sand_percent_Retained ~ soil, data = chemistry)
+
+summary(anova_very_fine_sand_retained)
+TukeyHSD(anova_very_fine_sand_retained, conf.level = 0.95)
+
+```
+Fines percent retained
+```{r}
+anova_fine_retained <- aov(data = chemistry, Fines_percent_Retained ~ soil)
+anova_fine_retained
+summary(anova_fine_retained)
+#Normality - shapiro-wilk's test
+qqPlot(anova_fine_retained$residuals)
+shapiro.test(anova_fine_retained$residuals)
+#Homogenity test
+bartlett.test(Fines_percent_Retained ~ soil, data = chemistry)
+leveneTest(Fines_percent_Retained ~ soil, data = chemistry)
+
+summary(anova_fine_retained)
+TukeyHSD(anova_fine_retained, conf.level = 0.95)
+
+
+```
+
