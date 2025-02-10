@@ -1,0 +1,506 @@
+---
+title: "Donors_contributions_lm_regression"
+output: html_document
+date: "2025-02-10"
+---
+library
+```{r}
+library(dplyr)
+library(agricolae)
+library(ggplot2)
+library(hrbrthemes)
+library(viridis)
+library(see)
+library("ggpmisc")
+library(broom)
+library(dplyr)
+library(purrr)
+```
+
+
+data input
+```{r}
+setwd("./model_output")
+ab_d1_js <-read.csv("ab_d1_Jensen-Shannon_distances.csv")
+ab_d3_js <-read.csv("ab_d3_Jensen-Shannon_distances.csv")
+ab_d5_js <-read.csv("ab_d5_Jensen-Shannon_distances.csv")
+ac_d1_js <-read.csv("ac_d1_Jensen-Shannon_distances.csv")
+ac_d3_js <-read.csv("ac_d3_Jensen-Shannon_distances.csv")
+ac_d5_js <-read.csv("ac_d5_Jensen-Shannon_distances.csv")
+bc_d1_js <-read.csv("bc_d1_Jensen-Shannon_distances.csv")
+bc_d3_js <-read.csv("bc_d3_Jensen-Shannon_distances.csv")
+bc_d5_js <-read.csv("bc_d5_Jensen-Shannon_distances.csv")
+
+ab_d1_earth <-read.csv("ab_d1_Earth-Mover-distances.csv")
+ab_d3_earth <-read.csv("ab_d3_Earth-Mover-distances.csv")
+ab_d5_earth <-read.csv("ab_d5_Earth-Mover-distances.csv")
+ac_d1_earth <-read.csv("ac_d1_Earth-Mover-distances.csv")
+ac_d3_earth <-read.csv("ac_d3_Earth-Mover-distances.csv")
+ac_d5_earth <-read.csv("ac_d5_Earth-Mover-distances.csv")
+bc_d1_earth <-read.csv("bc_d1_Earth-Mover-distances.csv")
+bc_d3_earth <-read.csv("bc_d3_Earth-Mover-distances.csv")
+bc_d5_earth <-read.csv("bc_d5_Earth-Mover-distances.csv")
+
+ab_d1_co <-read.csv("ab_d1_Cosine-distances.csv")
+ab_d3_co <-read.csv("ab_d3_Cosine-distances.csv")
+ab_d5_co <-read.csv("ab_d5_Cosine-distances.csv")
+ac_d1_co <-read.csv("ac_d1_Cosine-distances.csv")
+ac_d3_co <-read.csv("ac_d3_Cosine-distances.csv")
+ac_d5_co <-read.csv("ac_d5_Cosine-distances.csv")
+bc_d1_co <-read.csv("bc_d1_Cosine-distances.csv")
+bc_d3_co <-read.csv("bc_d3_Cosine-distances.csv")
+bc_d5_co <-read.csv("bc_d5_Cosine-distances.csv")
+
+ab_d1_eu <-read.csv("ab_d1_Euclidean-distances.csv")
+ab_d3_eu <-read.csv("ab_d3_Euclidean-distances.csv")
+ab_d5_eu <-read.csv("ab_d5_Euclidean-distances.csv")
+ac_d1_eu <-read.csv("ac_d1_Euclidean-distances.csv")
+ac_d3_eu <-read.csv("ac_d3_Euclidean-distances.csv")
+ac_d5_eu <-read.csv("ac_d5_Euclidean-distances.csv")
+bc_d1_eu <-read.csv("bc_d1_Euclidean-distances.csv")
+bc_d3_eu <-read.csv("bc_d3_Euclidean-distances.csv")
+bc_d5_eu <-read.csv("bc_d5_Euclidean-distances.csv")
+
+
+```
+
+```{r}
+anova <- function(x) { 
+  #x data_table
+  interaction <- with(x, interaction(Time,Pair))
+  x.aov <- aov(data = x, Values ~ interaction)
+  x.hsd <- HSD.test(x.aov, "interaction", group=TRUE)
+  return(x.hsd)
+}
+```
+
+Functions plot Jensen-Shannon
+```{r}
+plot_js_ab <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 1) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#ffcd05')) +
+  scale_fill_manual(values = c('red', '#ffcd05')) +
+  geom_smooth(method = "lm", se = FALSE) +
+     # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+plot_js_ac <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 1) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#2e3192')) +
+  scale_fill_manual(values = c('red', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+         # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+
+plot_js_bc <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 1) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('#ffcd05', '#2e3192')) +
+  scale_fill_manual(values = c('#ffcd05', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+         # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+```
+
+Functions plot Earth movers
+```{r}
+plot_earth_ab <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(5000, 30000) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#ffcd05')) +
+  scale_fill_manual(values = c('red', '#ffcd05')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+plot_earth_ac <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(5000, 30000) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#2e3192')) +
+  scale_fill_manual(values = c('red', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+
+plot_earth_bc <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(5000, 30000) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('#ffcd05', '#2e3192')) +
+  scale_fill_manual(values = c('#ffcd05', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+```
+Functions plot Cosine
+```{r}
+plot_co_ab <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 1) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#ffcd05')) +
+  scale_fill_manual(values = c('red', '#ffcd05')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+plot_co_ac <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 1) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#2e3192')) +
+  scale_fill_manual(values = c('red', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+
+plot_co_bc <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 1) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('#ffcd05', '#2e3192')) +
+  scale_fill_manual(values = c('#ffcd05', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+```
+Functions plot Euclidean
+```{r}
+plot_eu_ab <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 4000) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#ffcd05')) +
+  scale_fill_manual(values = c('red', '#ffcd05')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+plot_eu_ac <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 4000) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('red', '#2e3192')) +
+  scale_fill_manual(values = c('red', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+
+plot_eu_bc <- function(x){
+  a<- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+  geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha=.8, position = position_dodge(4.3)) + 
+  ylim(0, 4000) +
+  #geom_jitter(color="black", size=0.4, alpha=0.3) +
+  geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha=.2) +
+  scale_color_manual(values = c('#ffcd05', '#2e3192')) +
+  scale_fill_manual(values = c('#ffcd05', '#2e3192')) +
+  geom_smooth(method = "lm", se = FALSE) +
+    # Add R-squared and p-value using ggpmisc
+    stat_poly_eq(aes(label = paste("Slope:", ..eq.label..,..rr.label.., ..p.value.label.., sep = "~~~")),
+                 label.x.npc = "right", label.y.npc = 0.15,  # Adjust position
+                 formula = y ~ x, parse = TRUE) +
+  theme_bw()
+  return(a)
+}
+```
+
+anova
+```{r}
+ab_d1_js.anova <- anova(ab_d1_js)
+ab_d3_js.anova <- anova(ab_d3_js)
+ab_d5_js.anova <- anova(ab_d5_js)
+ac_d1_js.anova <- anova(ac_d1_js)
+ac_d3_js.anova <- anova(ac_d3_js)
+ac_d5_js.anova <- anova(ac_d5_js)
+bc_d1_js.anova <- anova(bc_d1_js)
+bc_d3_js.anova <- anova(bc_d3_js)
+bc_d5_js.anova <- anova(bc_d5_js)
+```
+
+```{r}
+ab_d1_earth.anova <- anova(ab_d1_earth)
+ab_d3_earth.anova <- anova(ab_d3_earth)
+ab_d5_earth.anova <- anova(ab_d5_earth)
+ac_d1_earth.anova <- anova(ac_d1_earth)
+ac_d3_earth.anova <- anova(ac_d3_earth)
+ac_d5_earth.anova <- anova(ac_d5_earth)
+bc_d1_earth.anova <- anova(bc_d1_earth)
+bc_d3_earth.anova <- anova(bc_d3_earth)
+bc_d5_earth.anova <- anova(bc_d5_earth)
+```
+
+```{r}
+ab_d1_co.anova <- anova(ab_d1_co)
+ab_d3_co.anova <- anova(ab_d3_co)
+ab_d5_co.anova <- anova(ab_d5_co)
+ac_d1_co.anova <- anova(ac_d1_co)
+ac_d3_co.anova <- anova(ac_d3_co)
+ac_d5_co.anova <- anova(ac_d5_co)
+bc_d1_co.anova <- anova(bc_d1_co)
+bc_d3_co.anova <- anova(bc_d3_co)
+bc_d5_co.anova <- anova(bc_d5_co)
+```
+
+```{r}
+ab_d1_eu.anova <- anova(ab_d1_eu)
+ab_d3_eu.anova <- anova(ab_d3_eu)
+ab_d5_eu.anova <- anova(ab_d5_eu)
+ac_d1_eu.anova <- anova(ac_d1_eu)
+ac_d3_eu.anova <- anova(ac_d3_eu)
+ac_d5_eu.anova <- anova(ac_d5_eu)
+bc_d1_eu.anova <- anova(bc_d1_eu)
+bc_d3_eu.anova <- anova(bc_d3_eu)
+bc_d5_eu.anova <- anova(bc_d5_eu)
+
+```
+
+```{r}
+plot_js_ab(ab_d1_js) + ggtitle("ab_d1_jensen-shannon 16S")
+plot_js_ab(ab_d3_js) + ggtitle("ab_d3_jensen-shannon 16S")
+plot_js_ab(ab_d5_js) + ggtitle("ab_d5_jensen-shannon 16S")
+plot_js_ac(ac_d1_js) + ggtitle("ac_d1_jensen-shannon 16S")
+plot_js_ac(ac_d3_js) + ggtitle("ac_d3_jensen-shannon 16S")
+plot_js_ac(ac_d5_js) + ggtitle("ac_d5_jensen-shannon 16S")
+plot_js_bc(bc_d1_js) + ggtitle("bc_d1_jensen-shannon 16S")
+plot_js_bc(bc_d3_js) + ggtitle("bc_d3_jensen-shannon 16S")
+plot_js_bc(bc_d5_js) + ggtitle("bc_d5_jensen-shannon 16S")
+```
+
+
+```{r}
+plot_earth_ab(ab_d1_earth) + ggtitle("ab_d1_earth")
+plot_earth_ab(ab_d3_earth) + ggtitle("ab_d3_earth")
+plot_earth_ab(ab_d5_earth) + ggtitle("ab_d5_earth")
+plot_earth_ac(ac_d1_earth) + ggtitle("ac_d1_earth")
+plot_earth_ac(ac_d3_earth) + ggtitle("ac_d3_earth")
+plot_earth_ac(ac_d5_earth) + ggtitle("ac_d5_earth")
+plot_earth_bc(bc_d1_earth) + ggtitle("bc_d1_earth")
+plot_earth_bc(bc_d3_earth) + ggtitle("bc_d3_earth")
+plot_earth_bc(bc_d5_earth) + ggtitle("bc_d5_earth")
+
+plot_co_ab(ab_d1_co) + ggtitle("ab_d1_co")
+plot_co_ab(ab_d3_co) + ggtitle("ab_d3_co")
+plot_co_ab(ab_d5_co) + ggtitle("ab_d5_co")
+plot_co_ac(ac_d1_co) + ggtitle("ac_d1_co")
+plot_co_ac(ac_d3_co) + ggtitle("ac_d3_co")
+plot_co_ac(ac_d5_co) + ggtitle("ac_d5_co")
+plot_co_bc(bc_d1_co) + ggtitle("bc_d1_co")
+plot_co_bc(bc_d3_co) + ggtitle("bc_d3_co")
+plot_co_bc(bc_d5_co) + ggtitle("bc_d5_co")
+
+plot_eu_ab(ab_d1_eu) + ggtitle("ab_d1_eu")
+plot_eu_ab(ab_d3_eu) + ggtitle("ab_d3_eu")
+plot_eu_ab(ab_d5_eu) + ggtitle("ab_d5_eu")
+plot_eu_ac(ac_d1_eu) + ggtitle("ac_d1_eu")
+plot_eu_ac(ac_d3_eu) + ggtitle("ac_d3_eu")
+plot_eu_ac(ac_d5_eu) + ggtitle("ac_d5_eu")
+plot_eu_bc(bc_d1_eu) + ggtitle("bc_d1_eu")
+plot_eu_bc(bc_d3_eu) + ggtitle("bc_d3_eu")
+plot_eu_bc(bc_d5_eu) + ggtitle("bc_d5_eu")
+
+```
+regression
+```{r}
+#Jensen-Shannon
+summary(lm(Values ~ Time, ab_d1_js[ab_d1_js$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d1_js[ab_d1_js$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_js[ab_d3_js$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_js[ab_d3_js$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_js[ab_d5_js$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_js[ab_d5_js$Pair == "B_AxB", ]))
+
+summary(lm(Values ~ Time, ac_d1_js[ac_d1_js$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d1_js[ac_d1_js$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_js[ac_d3_js$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_js[ac_d3_js$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_js[ac_d5_js$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_js[ac_d5_js$Pair == "C_AxC", ]))
+
+summary(lm(Values ~ Time, bc_d1_js[bc_d1_js$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d1_js[bc_d1_js$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_js[bc_d3_js$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_js[bc_d3_js$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_js[bc_d5_js$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_js[bc_d5_js$Pair == "C_BxC", ]))
+```
+
+```{r}
+plot_js_ab2 <- function(x) {
+  # Fit linear model for each Pair and extract coefficients
+  lm_results <- x %>%
+    group_by(Pair) %>%
+    do(model = lm(Values ~ Time, data = .)) %>%
+    mutate(coef = map(model, ~ tidy(.) %>% filter(term == "Time") %>% pull(estimate))) %>%
+    ungroup()
+
+  # Combine the main plot with the time estimate coefficient
+  a <- ggplot(x, aes(x = Time, y = Values, color = Pair, fill = Pair)) +
+    geom_boxplot(aes(group = interaction(Time, Pair)), width = 4, alpha = 0.8, position = position_dodge(4.3)) + 
+    ylim(0, 1) +
+    geom_point(position = position_jitterdodge(jitter.width = 4.3, dodge.width = 4), alpha = 0.2) +
+    scale_color_manual(values = c('red', '#ffcd05')) +
+    scale_fill_manual(values = c('red', '#ffcd05')) +
+    geom_smooth(method = "lm", se = FALSE) +
+    
+    # Add Time estimate coefficient, R-squared, and p-value using ggpmisc
+    stat_poly_eq(
+      aes(label = paste("Time Est.:", round(lm_results$coef[lm_results$Pair == Pair], 2), 
+                        "R²:", ..rr.label.., "p:", ..p.value.label..)),
+      label.x.npc = "right", label.y.npc = 0.15,  # Adjust position as needed
+      formula = y ~ x, parse = TRUE) +
+    
+    theme_bw()
+
+  return(a)
+}
+```
+
+
+```{r}
+#Earth
+summary(lm(Values ~ Time, ab_d1_earth[ab_d1_earth$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d1_earth[ab_d1_earth$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_earth[ab_d3_earth$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_earth[ab_d3_earth$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_earth[ab_d5_earth$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_earth[ab_d5_earth$Pair == "B_AxB", ]))
+
+summary(lm(Values ~ Time, ac_d1_earth[ac_d1_earth$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d1_earth[ac_d1_earth$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_earth[ac_d3_earth$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_earth[ac_d3_earth$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_earth[ac_d5_earth$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_earth[ac_d5_earth$Pair == "C_AxC", ]))
+
+summary(lm(Values ~ Time, bc_d1_earth[bc_d1_earth$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d1_earth[bc_d1_earth$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_earth[bc_d3_earth$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_earth[bc_d3_earth$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_earth[bc_d5_earth$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_earth[bc_d5_earth$Pair == "C_BxC", ]))
+
+#Cosine
+summary(lm(Values ~ Time, ab_d1_co[ab_d1_co$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d1_co[ab_d1_co$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_co[ab_d3_co$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_co[ab_d3_co$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_co[ab_d5_co$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_co[ab_d5_co$Pair == "B_AxB", ]))
+
+summary(lm(Values ~ Time, ac_d1_co[ac_d1_co$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d1_co[ac_d1_co$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_co[ac_d3_co$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_co[ac_d3_co$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_co[ac_d5_co$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_co[ac_d5_co$Pair == "C_AxC", ]))
+
+summary(lm(Values ~ Time, bc_d1_co[bc_d1_co$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d1_co[bc_d1_co$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_co[bc_d3_co$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_co[bc_d3_co$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_co[bc_d5_co$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_co[bc_d5_co$Pair == "C_BxC", ]))
+
+#Earth
+summary(lm(Values ~ Time, ab_d1_eu[ab_d1_eu$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d1_eu[ab_d1_eu$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_eu[ab_d3_eu$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d3_eu[ab_d3_eu$Pair == "B_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_eu[ab_d5_eu$Pair == "A_AxB", ]))
+summary(lm(Values ~ Time, ab_d5_eu[ab_d5_eu$Pair == "B_AxB", ]))
+
+summary(lm(Values ~ Time, ac_d1_eu[ac_d1_eu$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d1_eu[ac_d1_eu$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_eu[ac_d3_eu$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d3_eu[ac_d3_eu$Pair == "C_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_eu[ac_d5_eu$Pair == "A_AxC", ]))
+summary(lm(Values ~ Time, ac_d5_eu[ac_d5_eu$Pair == "C_AxC", ]))
+
+summary(lm(Values ~ Time, bc_d1_eu[bc_d1_eu$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d1_eu[bc_d1_eu$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_eu[bc_d3_eu$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d3_eu[bc_d3_eu$Pair == "C_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_eu[bc_d5_eu$Pair == "B_BxC", ]))
+summary(lm(Values ~ Time, bc_d5_eu[bc_d5_eu$Pair == "C_BxC", ]))
+```
+
