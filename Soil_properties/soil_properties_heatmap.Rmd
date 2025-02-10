@@ -1,0 +1,185 @@
+---
+title: "soil_properties_heatmap"
+output: html_document
+date: "2025-02-10"
+---
+
+```{r}
+chem <-read.csv("./soil_properties_controls_mixtures.csv", header = TRUE, check.names = FALSE ) #chemistry_otu.csv has the outliers removed
+
+chem_selected <- chem[c("soil", "pH", "Percent_Organic_Matter", "Nitrate_nitrogen", "Ammonium_nitrogen", "Total_N_Percent", "Total_C_percent", "Sand_percent", "Silt_percent", "Clay_percent")]
+```
+
+```{r}
+
+# Define the "id" column values
+id_values <- c("B10-1T1R1", "B10-1T1R2", "B10-1T1R3", "A10-1T1R1", "A10-1T1R2", "A10-1T1R3", "C10-1T1R1", "C10-1T1R2", "C10-1T1R3", 
+               "AxB-1T1R1", "AxB-1T1R2", "AxB-1T1R3", "AxC-1T1R1", "AxC-1T1R2", "AxC-1T1R3", "BxC-1T1R1", "BxC-1T1R2", "BxC-1T1R3")
+
+# Add the column to the dataframe
+chem_selected$id <- id_values
+
+# View the updated dataframe
+
+rownames(chem_selected) <- chem_selected$id
+
+# Remove the original column to keep only the data
+chem_selected <- chem_selected[, -1]
+chem_selected <- chem_selected[, -10]
+
+```
+
+```{r}
+chemistry_ab <- chem_selected[c("B10-1T1R1", "B10-1T1R2", "B10-1T1R3", 
+               "A10-1T1R1", "A10-1T1R2", "A10-1T1R3",
+               "AxB-1T1R1", "AxB-1T1R2", "AxB-1T1R3"), ]
+
+chemistry_ac <- chem_selected[c("C10-1T1R1", "C10-1T1R2", "C10-1T1R3", 
+               "A10-1T1R1", "A10-1T1R2", "A10-1T1R3",
+               "AxC-1T1R1", "AxC-1T1R2", "AxC-1T1R3"), ]
+
+chemistry_bc <- chem_selected[c("C10-1T1R1", "C10-1T1R2", "C10-1T1R3", 
+               "B10-1T1R1", "B10-1T1R2", "B10-1T1R3",
+               "BxC-1T1R1", "BxC-1T1R2", "BxC-1T1R3"), ]
+
+```
+
+transpose
+```{r}
+#transpose
+chemistry_ab.t  <- as.data.frame(t(chemistry_ab))
+chemistry_ac.t  <- as.data.frame(t(chemistry_ac))
+chemistry_bc.t  <- as.data.frame(t(chemistry_bc))
+
+#reorder
+chemistry_ab.t <- chemistry_ab.t[, c("A10-1T1R1", "A10-1T1R2", "A10-1T1R3", "B10-1T1R1", "B10-1T1R2", "B10-1T1R3", "AxB-1T1R1", "AxB-1T1R2", "AxB-1T1R3")]
+
+chemistry_ac.t <- chemistry_ac.t[, c("A10-1T1R1", "A10-1T1R2", "A10-1T1R3", "C10-1T1R1", "C10-1T1R2", "C10-1T1R3", "AxC-1T1R1", "AxC-1T1R2", "AxC-1T1R3")]
+
+chemistry_bc.t <- chemistry_bc.t[, c("B10-1T1R1", "B10-1T1R2", "B10-1T1R3", "C10-1T1R1", "C10-1T1R2", "C10-1T1R3", "BxC-1T1R1", "BxC-1T1R2", "BxC-1T1R3")]
+
+```
+
+```{r}
+#biol.w.2 <- t(biol.w[, -1]) 
+chemistry_ab.t2 <- t(chemistry_ab.t) 
+chemistry_ac.t2 <- t(chemistry_ac.t) 
+chemistry_bc.t2 <- t(chemistry_bc.t) 
+
+```
+
+```{r}
+#biol.w.3 <- t(scale(biol.w.2, center = TRUE, scale = TRUE))
+
+chemistry_ab.t3 <- t(scale(chemistry_ab.t2, center = TRUE, scale = TRUE))
+chemistry_ac.t3 <- t(scale(chemistry_ac.t2, center = TRUE, scale = TRUE))
+chemistry_bc.t3 <- t(scale(chemistry_bc.t2, center = TRUE, scale = TRUE))
+
+```
+
+```{r}
+chemistry_ab.t3
+#col names
+colnames(chemistry_ab.t3) <- c("A_R1", "A_R2", "A_R3", "B_R1", "B_R2", "B_R3", "AxB_R1", "AxB_R2", "AxB_R3")
+colnames(chemistry_ac.t3) <- c("A_R1", "A_R2", "A_R3", "C_R1", "C_R2", "C_R3", "AxC_R1", "AxC_R2", "AxC_R3")
+colnames(chemistry_bc.t3) <- c("B_R1", "B_R2", "B_R3", "C_R1", "C_R2", "C_R3", "BxC_R1", "BxC_R2", "BxC_R3")
+
+```
+
+
+```{r}
+#edit the file
+chemistry_ab.t4 <- as.data.frame(chemistry_ab.t3)
+chemistry_ac.t4 <- as.data.frame(chemistry_ac.t3)
+chemistry_bc.t4 <- as.data.frame(chemistry_bc.t3)
+
+str(chemistry_ab.t4)
+
+chemistry_ab.t4$id <- rownames(chemistry_ab.t4)
+chemistry_ac.t4$id <- rownames(chemistry_ac.t4)
+chemistry_bc.t4$id <- rownames(chemistry_bc.t4)
+```
+
+
+```{r}
+library(tidyr)
+#long format
+chemistry_ab.t4.long <- gather(chemistry_ab.t4, soil, value, A_R1:AxB_R3, factor_key = TRUE)
+chemistry_ac.t4.long <- gather(chemistry_ac.t4, soil, value, A_R1:AxC_R3, factor_key = TRUE)
+chemistry_bc.t4.long <- gather(chemistry_bc.t4, soil, value, B_R1:BxC_R3, factor_key = TRUE)
+
+# Split the 'soil' column into two separate columns
+chemistry_ab.t4.long <- separate(chemistry_ab.t4.long, col = soil, into = c("Soil", "Rep"), sep = "_")
+chemistry_ac.t4.long <- separate(chemistry_ac.t4.long, col = soil, into = c("Soil", "Rep"), sep = "_")
+chemistry_bc.t4.long <- separate(chemistry_bc.t4.long, col = soil, into = c("Soil", "Rep"), sep = "_")
+
+chemistry_ab.t4.long$Treat <- paste(chemistry_ab.t4.long$Soil, "_", chemistry_ab.t4.long$Rep, sep = "")
+chemistry_ac.t4.long$Treat <- paste(chemistry_ac.t4.long$Soil, "_", chemistry_ac.t4.long$Rep, sep = "")
+chemistry_bc.t4.long$Treat <- paste(chemistry_bc.t4.long$Soil, "_", chemistry_bc.t4.long$Rep, sep = "")
+
+chemistry_ab.t4.long$Abiotic_Rep <- paste(chemistry_ab.t4.long$id, "_", chemistry_ab.t4.long$Rep, sep = "")
+chemistry_ac.t4.long$Abiotic_Rep <- paste(chemistry_ac.t4.long$id, "_", chemistry_ac.t4.long$Rep, sep = "")
+chemistry_bc.t4.long$Abiotic_Rep <- paste(chemistry_bc.t4.long$id, "_", chemistry_bc.t4.long$Rep, sep = "")
+
+
+#transform to wide
+library(reshape2)
+chemistry_ab.t4.w <- dcast(chemistry_ab.t4.long, Soil ~ Abiotic_Rep, value.var = "value")
+chemistry_ac.t4.w <- dcast(chemistry_ac.t4.long, Soil ~ Abiotic_Rep, value.var = "value")
+chemistry_bc.t4.w <- dcast(chemistry_bc.t4.long, Soil ~ Abiotic_Rep, value.var = "value")
+
+row.names(chemistry_ab.t4.w) <- chemistry_ab.t4.w$Soil
+row.names(chemistry_ac.t4.w) <- chemistry_ac.t4.w$Soil
+row.names(chemistry_bc.t4.w) <- chemistry_bc.t4.w$Soil
+
+# Remove the 'id' column
+chemistry_ab.t4.w <- chemistry_ab.t4.w[, -1]
+chemistry_ac.t4.w <- chemistry_ac.t4.w[, -1]
+chemistry_bc.t4.w <- chemistry_bc.t4.w[, -1]
+
+
+chemistry_ab.t5 <- chemistry_ab.t4.w[, c("Sand_percent_R1", "Sand_percent_R2", "Sand_percent_R3", "Silt_percent_R1", "Silt_percent_R2", "Silt_percent_R3", "Clay_percent_R1", "Clay_percent_R2", "Clay_percent_R3", "pH_R1", "pH_R2", "pH_R3", "Total_C_percent_R1", "Total_C_percent_R2", "Total_C_percent_R3", "Total_N_Percent_R1", "Total_N_Percent_R2", "Total_N_Percent_R3","Percent_Organic_Matter_R1", "Percent_Organic_Matter_R2", "Percent_Organic_Matter_R3", "Ammonium_nitrogen_R1", "Ammonium_nitrogen_R2", "Ammonium_nitrogen_R3", "Nitrate_nitrogen_R1", "Nitrate_nitrogen_R2", "Nitrate_nitrogen_R3")]
+
+chemistry_ac.t5 <- chemistry_ac.t4.w[, c("Sand_percent_R1", "Sand_percent_R2", "Sand_percent_R3", "Silt_percent_R1", "Silt_percent_R2", "Silt_percent_R3", "Clay_percent_R1", "Clay_percent_R2", "Clay_percent_R3", "pH_R1", "pH_R2", "pH_R3", "Total_C_percent_R1", "Total_C_percent_R2", "Total_C_percent_R3", "Total_N_Percent_R1", "Total_N_Percent_R2", "Total_N_Percent_R3","Percent_Organic_Matter_R1", "Percent_Organic_Matter_R2", "Percent_Organic_Matter_R3", "Ammonium_nitrogen_R1", "Ammonium_nitrogen_R2", "Ammonium_nitrogen_R3", "Nitrate_nitrogen_R1", "Nitrate_nitrogen_R2", "Nitrate_nitrogen_R3")]
+
+chemistry_bc.t5 <- chemistry_bc.t4.w[, c("Sand_percent_R1", "Sand_percent_R2", "Sand_percent_R3", "Silt_percent_R1", "Silt_percent_R2", "Silt_percent_R3", "Clay_percent_R1", "Clay_percent_R2", "Clay_percent_R3", "pH_R1", "pH_R2", "pH_R3", "Total_C_percent_R1", "Total_C_percent_R2", "Total_C_percent_R3", "Total_N_Percent_R1", "Total_N_Percent_R2", "Total_N_Percent_R3","Percent_Organic_Matter_R1", "Percent_Organic_Matter_R2", "Percent_Organic_Matter_R3", "Ammonium_nitrogen_R1", "Ammonium_nitrogen_R2", "Ammonium_nitrogen_R3", "Nitrate_nitrogen_R1", "Nitrate_nitrogen_R2", "Nitrate_nitrogen_R3")]
+
+chemistry_ab.t5 <- t(chemistry_ab.t5)
+chemistry_ac.t5 <- t(chemistry_ac.t5)
+chemistry_bc.t5 <- t(chemistry_bc.t5)
+
+chemistry_ab.t5 <- chemistry_ab.t5[, c("A", "B", "AxB")]
+chemistry_ac.t5 <- chemistry_ac.t5[, c("A", "C", "AxC")]
+chemistry_bc.t5 <- chemistry_bc.t5[, c("B", "C", "BxC")]
+
+```
+
+#8. Create the matrix
+Finally, we need convert the dataset into a specific type of file, called a data matrix. Compare the soc_matrix dataset to soccer3.
+```{r}
+
+set_ab_matrix <- data.matrix(chemistry_ab.t5) # heatmaps like matrices
+set_ac_matrix <- data.matrix(chemistry_ac.t5) # heatmaps like matrices
+set_bc_matrix <- data.matrix(chemistry_bc.t5) # heatmaps like matrices
+
+```
+
+
+#9. Plot 
+```{r}
+library(gplots)
+#library("RColorBrewer")
+
+col2 = colorRampPalette(c("deepskyblue3", "bisque", "coral3"))(100)
+col3 = colorRampPalette(c("darkgoldenrod3", "bisque", "chartreuse4"))(100)
+
+chem_ab_heatmap <- heatmap.2(t(set_ab_matrix), Rowv = FALSE, Colv = FALSE,  col= col2, #scale= "row", 
+                             dendrogram = "none", margins=c(10,20), labRow = row.names(t(set_ab_matrix)), density.info = "none", trace = "none")
+
+chem_ac_heatmap <- heatmap.2(t(set_ac_matrix), Rowv = FALSE, Colv = FALSE, col= col2, #scale= "row", 
+                             dendrogram = "none", margins=c(10,20), labRow = row.names(t(set_ac_matrix)), density.info = "none", trace = "none")
+
+chem_bc_heatmap <- heatmap.2(t(set_bc_matrix), Rowv = FALSE, Colv = FALSE, col= col2, #scale= "row", 
+                             dendrogram = "none", margins=c(10,20), labRow = row.names(t(set_bc_matrix)), density.info = "none", trace = "none")
+
+```
